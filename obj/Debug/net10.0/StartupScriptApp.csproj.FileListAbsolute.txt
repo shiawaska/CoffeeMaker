@@ -1,0 +1,4 @@
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.GeneratedMSBuildEditorConfig.editorconfig
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.AssemblyInfoInputs.cache
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.AssemblyInfo.cs
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.csproj.CoreCompileInputs.cache
