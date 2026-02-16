@@ -183,19 +183,19 @@ public class Logging : ILogger
         var index = 0;
         foreach (var monitor in monitors)
         {
-            LogInfo(
+            LogDebug(
                 $"\n\n Monitor {index++}: Resolution: {monitor.Width}x{monitor.Height}, IsPrimary: {monitor.IsPrimary}"
             );
 
-            LogInfo($"\n    Bounds.Bottom: {monitor.Bounds.Bottom}");
-            LogInfo($"    Bounds.Top: {monitor.Bounds.Top}");
-            LogInfo($"    Bounds.Width: {monitor.Bounds.Width}");
-            LogInfo($"    Bounds.Height: {monitor.Bounds.Height}");
-            
-            LogInfo($"\n    WorkArea.Bottom: {monitor.WorkArea.Bottom}");
-            LogInfo($"    WorkArea.Top: {monitor.WorkArea.Top}");
-            LogInfo($"    WorkArea.Width: {monitor.WorkArea.Width}");
-            LogInfo($"    WorkArea.Height: {monitor.WorkArea.Height}");
+            LogDebug($"\n    Bounds.Bottom: {monitor.Bounds.Bottom}");
+            LogDebug($"    Bounds.Top: {monitor.Bounds.Top}");
+            LogDebug($"    Bounds.Width: {monitor.Bounds.Width}");
+            LogDebug($"    Bounds.Height: {monitor.Bounds.Height}");
+
+            LogDebug($"\n    WorkArea.Bottom: {monitor.WorkArea.Bottom}");
+            LogDebug($"    WorkArea.Top: {monitor.WorkArea.Top}");
+            LogDebug($"    WorkArea.Width: {monitor.WorkArea.Width}");
+            LogDebug($"    WorkArea.Height: {monitor.WorkArea.Height}");
         }
     }
 }

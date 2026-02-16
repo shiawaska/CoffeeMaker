@@ -31,13 +31,14 @@ public static class AppDefinitionExtensions
     /// <returns>True if the app should be processed for startup; otherwise false.</returns>
     public static bool ShouldProcessApp(this ApplicationDefinition app, Dictionary<string, List<string>> argDict)
     {
-        var inSkipList = !String.IsNullOrWhiteSpace(app.Name) && app.Name.IsAppInArgList(argDict, "start");
+        var inSkipList = !String.IsNullOrWhiteSpace(app.Name) && app.Name.IsAppInArgList(argDict, "skip");
         var inStartList = !String.IsNullOrWhiteSpace(app.Name) && app.Name.IsAppInArgList(argDict, "start");
-        
+        var inGroup = app.IsAppInGroup(argDict);
+
         return !inSkipList
             && (
                 IsDefaultStartAll(argDict)
-                || app.IsAppInGroup(argDict)
+                || inGroup
                 || inStartList
             );
     }

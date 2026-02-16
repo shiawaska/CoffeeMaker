@@ -27,7 +27,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             catch (Exception ex)
             {
                 // this is usually due to a permissions issue.
-                // logger.LogError(ex, $"Failed to get process info for process: {proc.Id}");
+                logger.LogMulti($"Failed to get process info for process: {proc.Id} : {ex}", LogLevel.Verbose);
                 continue;
             }
 
@@ -38,8 +38,8 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (processes.Length == 0)
             return new List<IntPtr>();
 
-        
-        var retries =GetRetries(app);
+
+        var retries = GetRetries(app);
         var handleValidationTasks = processes
             .SelectMany(
                 proc => app.WindowTitles,
@@ -59,7 +59,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (proc.HasExited)
             return await FindWindowAsync(app);
 
-        var retries =GetRetries(app);
+        var retries = GetRetries(app);
         var handles = await Task.WhenAll(
             app.WindowTitles.Select(wt => ValidateWindowTitleAsync(proc, wt, app.SplashTitles, retries))
                 .ToList()
@@ -87,24 +87,25 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         var bounds = CalculateSnapSize(monitor, snapPosition);
 
         logger.LogDebug($"\n Calling SetWindowPos for {hWnd}");
-        if (
-            WindowInterop.IsIconic(hWnd)
-            || WindowInterop.IsZoomed(hWnd)
-            || WindowInterop.IsWindowArranged(hWnd)
-        )
+        var uflag = GetWindowState(hWnd);
+
+        if (uflag != SnapConstants.SW_SHOWNORMAL)
         {
             WindowInterop.ShowWindow(hWnd, SnapConstants.SW_RESTORE);
         }
 
+
         var result = WindowInterop.SetWindowPos(
             hWnd,
-            SnapConstants.HWND_TOP,
+            zOrder.HasValue ? new IntPtr(zOrder.Value) : SnapConstants.HWND_TOP,
             bounds.X,
             bounds.Y,
             bounds.Width,
             bounds.Height,
-            SnapConstants.SWP_SHOWWINDOW
+            uflag
         );
+
+
         if (!result)
             logger.LogError();
 
@@ -213,11 +214,14 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         if (
             !string.IsNullOrEmpty(proc.MainWindowTitle)
-            && (
+            &&
+            // Removed this due to window titles being unreliable. Only process with a MainWindowTitle will have a window associated with it. So this will match all windows associated with the process
+
+            /* (
                 string.IsNullOrEmpty(windowTitle)
-                || proc.MainWindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase)
+             || proc.MainWindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase)
             )
-            && !splashTitles.Any(st =>
+            &&*/ !splashTitles.Any(st =>
                 proc.MainWindowTitle.Contains(st, StringComparison.OrdinalIgnoreCase)
             )
         )
@@ -246,6 +250,17 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         );
         return await ValidateWindowTitleAsync(proc, windowTitle, splashTitles, retries - 1);
     }
-    
+
     private int GetRetries(ApplicationDefinition app) => app.ShouldRetry(arguments.argDict) ? ConfigurationsDefaults.WindowCaptureRetries : 0;
+
+    private uint GetWindowState(IntPtr hWnd)
+    {
+        if (WindowInterop.IsIconic(hWnd))
+            return SnapConstants.SW_SHOWMINIMIZED;
+        if (WindowInterop.IsZoomed(hWnd))
+            return SnapConstants.SW_SHOWMAXIMIZED;
+        if (WindowInterop.IsWindowArranged(hWnd))
+            return SnapConstants.SW_SHOWMINNOACTIVE;
+        return SnapConstants.SW_SHOWNORMAL;
+    }
 }

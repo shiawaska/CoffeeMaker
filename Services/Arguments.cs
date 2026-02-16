@@ -8,9 +8,7 @@ public class Arguments(ILogger logger)
 {
     public readonly Dictionary<string, List<string>> argDict =
         new();
-    
-    private bool _debug;
-    private bool _verbose;
+
     public bool debug => argDict.ContainsKey("debug");
     public bool verbose => argDict.ContainsKey("verbose") || argDict.ContainsKey("v");
 

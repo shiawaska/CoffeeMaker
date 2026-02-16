@@ -11,8 +11,9 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var (logger, arguments, monitorManager,processManager,windowManager ,config ) = GetServices(args);
-        
+        var (logger, arguments, monitorManager, processManager, windowManager, config) =
+            GetServices(args);
+
         await DelayCheck(arguments, logger);
 
         var path = BuildConfigFilePath(arguments, logger);
@@ -131,8 +132,15 @@ public class Program
             await Task.Delay(delayInt);
         }
     }
-    
-    private static (ILogger, Arguments,IMonitorManager,ProcessManagement ,IWindowManager ,Configuration) GetServices(string[] args)
+
+    private static (
+        ILogger,
+        Arguments,
+        IMonitorManager,
+        ProcessManagement,
+        IWindowManager,
+        Configuration
+    ) GetServices(string[] args)
     {
         var logger = new Logging();
         var arguments = new Arguments(logger);
@@ -143,8 +151,11 @@ public class Program
             logger
         );
         var processManager = new ProcessManagement(logger);
-        IWindowManager windowManager = PlatformServicesFactory.CreateWindowManager(logger, arguments);
+        IWindowManager windowManager = PlatformServicesFactory.CreateWindowManager(
+            logger,
+            arguments
+        );
         var config = new Configuration(logger);
-        return (logger, arguments, monitorManager,processManager,windowManager ,config );
+        return (logger, arguments, monitorManager, processManager, windowManager, config);
     }
 }
