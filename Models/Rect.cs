@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace StartupScriptApp.models.Rect;
+namespace StartupScriptApp.Models;
 [StructLayout(LayoutKind.Sequential)]
 public struct RECT
 {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using StartupScriptApp.models.ApplicationDefinition;
+using StartupScriptApp.Models;
+using StartupScriptApp.Models.ApplicationDefinition;
 
 namespace StartupScriptApp.Extensions;
 
@@ -30,11 +31,14 @@ public static class AppDefinitionExtensions
     /// <returns>True if the app should be processed for startup; otherwise false.</returns>
     public static bool ShouldProcessApp(this ApplicationDefinition app, Dictionary<string, List<string>> argDict)
     {
-        return !app.Name.IsAppInArgList(argDict, "skip")
+        var inSkipList = !String.IsNullOrWhiteSpace(app.Name) && app.Name.IsAppInArgList(argDict, "start");
+        var inStartList = !String.IsNullOrWhiteSpace(app.Name) && app.Name.IsAppInArgList(argDict, "start");
+        
+        return !inSkipList
             && (
                 IsDefaultStartAll(argDict)
                 || app.IsAppInGroup(argDict)
-                || app.Name.IsAppInArgList(argDict, "start")
+                || inStartList
             );
     }
 
@@ -49,7 +53,7 @@ public static class AppDefinitionExtensions
         Dictionary<string, List<string>> argDict
     )
     {
-        return app.SkipRunningCheck
+        return  app.SkipRunningCheck || string.IsNullOrWhiteSpace(app.ProcessName)
             || (
                 argDict.ContainsKey("nocheck")
                 && (!argDict["nocheck"].Any() || app.Name.IsAppInArgList(argDict, "nocheck"))
@@ -119,6 +123,4 @@ public static class AppDefinitionExtensions
     {
         return !argDict.ContainsKey("group") && !argDict.ContainsKey("start");
     }
-    
-   
 }

@@ -1,4 +1,15 @@
+D:\Startup\bin\Debug\net10.0\StartupScriptApp.exe
+D:\Startup\bin\Debug\net10.0\StartupScriptApp.deps.json
+D:\Startup\bin\Debug\net10.0\StartupScriptApp.runtimeconfig.json
+D:\Startup\bin\Debug\net10.0\StartupScriptApp.dll
+D:\Startup\bin\Debug\net10.0\StartupScriptApp.pdb
 D:\Startup\obj\Debug\net10.0\StartupScriptApp.GeneratedMSBuildEditorConfig.editorconfig
 D:\Startup\obj\Debug\net10.0\StartupScriptApp.AssemblyInfoInputs.cache
 D:\Startup\obj\Debug\net10.0\StartupScriptApp.AssemblyInfo.cs
 D:\Startup\obj\Debug\net10.0\StartupScriptApp.csproj.CoreCompileInputs.cache
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.sourcelink.json
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.dll
+D:\Startup\obj\Debug\net10.0\refint\StartupScriptApp.dll
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.pdb
+D:\Startup\obj\Debug\net10.0\StartupScriptApp.genruntimeconfig.cache
+D:\Startup\obj\Debug\net10.0\ref\StartupScriptApp.dll

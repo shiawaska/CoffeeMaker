@@ -2,7 +2,8 @@
 
 public enum Categories
 {
-    IDEs,
+    None,
+    Editor,
     Communications,
     Utilities,
     Documentation,

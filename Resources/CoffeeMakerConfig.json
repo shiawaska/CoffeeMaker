@@ -1,0 +1,187 @@
+﻿{
+  // ============================================================
+  // CoffeeMakerConfig.json (MOCK / TEMPLATE)
+  //
+  // This file configures:
+  //  - global default timing behavior (Defaults)
+  //  - optionally a known monitor layout (Monitors)
+  //  - a list of Applications to start and (optionally) snap/position
+  //
+  // NOTE:
+  // - This template uses JSONC-style comments (//).
+  // - If your loader uses System.Text.Json *without* comment support,
+  //   you'll need to remove comments (or enable comment handling).
+  // ============================================================
+
+  // -----------------------
+  // Defaults (OPTIONAL)
+  // -----------------------
+  // Used by the app when it needs to wait for windows to appear, retry finding them, etc.
+  // If omitted, the application will fall back to its built-in defaults.
+  "Defaults": {
+    // OPTIONAL: how long to wait between attempts to find/capture the app window (in milliseconds)
+    "WindowCaptureDelayMs": 3000,
+
+    // OPTIONAL: how many times to retry locating/capturing the window before giving up
+    "WindowCaptureRetries": 3,
+
+    // OPTIONAL: extra delay after starting the process but before snapping the window (in milliseconds)
+    "DelayBeforeSnapMs": 10000
+  },
+
+  // -----------------------
+  // Monitors (OPTIONAL)
+  // -----------------------
+  // Defines a monitor layout. This may be used when running with a flag like
+  // "--use-defined-monitors" (depending on your app behavior).
+  //
+  // Minimum useful fields per monitor:
+  //   Id, Name, Width, Height, X, Y, IsPrimary
+  "Monitors": [
+    {
+      "Id": "monitor-1",
+      "Name": "Left Monitor",
+      "Width": 1920,
+      "Height": 1080,
+      "X": 0,
+      "Y": 0,
+      "IsPrimary": false
+    },
+    {
+      "Id": "monitor-2",
+      "Name": "Center Monitor (Primary)",
+      "Width": 1920,
+      "Height": 1080,
+      "X": 1920,
+      "Y": 0,
+      "IsPrimary": true
+    }
+  ],
+
+  // -----------------------
+  // Applications (REQUIRED)
+  // -----------------------
+  // This is the main list the launcher uses.
+  //
+  // MINIMUM required fields per Application (based on ApplicationDefinition.Builder):
+  //   - ExecutablePath (required; Build() throws if missing/empty)
+  //
+  // Strongly recommended fields:
+  //   - Name (if omitted/blank, code will replace it with ExecutablePath)
+  //   - Category (should be one of: Editor, Communications, Utilities, Documentation,
+  //               Development, Productivity, Entertainment, System)
+  //   - ProcessName (if omitted, it will default to file name without extension)
+  //   - WindowTitles (helps the window-finder locate the correct top-level window)
+  //   - MonitorIndex + Position (Position must be one of SnapPosition enum values)
+  //
+  // Notes:
+  // - "Arguments" here is an ARRAY of objects (ArgumentDefinition DTOs) which your DTO layer
+  //   turns into a single command-line string in ApplicationDefinition (builder concatenates values).
+  // - "WorkingDirectory" can be null/empty (it will become "" in ProcessStartInfo).
+  "Applications": [
+    {
+      // RECOMMENDED: a friendly display name used in logs and argument filtering (--start/--skip)
+      "Name": "Rider",
+
+      // RECOMMENDED: must match Categories enum
+      "Category": "Development",
+
+      // REQUIRED: full path to the executable to start
+      "ExecutablePath": "C:\\Path\\To\\Rider\\bin\\rider64.exe",
+
+      // OPTIONAL: if null/"" the process starts with default working dir behavior
+      "WorkingDirectory": "C:\\Repos",
+
+      // OPTIONAL: list of argument objects; values are concatenated into a single arguments string
+      "Arguments": [
+        {
+          // Meaning: a human label for the argument (NOT required for launching)
+          // Usage in your builder: if IncludeNameInWindowTitles is true, Name is added to WindowTitles
+          "Name": "MySolution",
+
+          // Meaning: actual argument text appended to the process command line
+          "Value": "C:\\Repos\\MySolution\\MySolution.sln",
+
+          // Meaning: when true, adds Name to WindowTitles to help match the correct window
+          "IncludeNameInWindowTitles": true
+        }
+      ],
+
+      // RECOMMENDED: used for "already running?" checks (unless SkipRunningCheck is true)
+      // If omitted, defaults to the exe file name (without extension).
+      "ProcessName": "rider64",
+
+      // OPTIONAL: start ordering (lower starts earlier)
+      "Order": 1,
+
+      // OPTIONAL: 1-based index in *your config’s* monitor list (your sample uses 1..N style)
+      "MonitorIndex": 2,
+
+      // OPTIONAL: must match SnapPosition enum:
+      // TopLeft, TopRight, BottomLeft, BottomRight, EntireLeft, EntireRight,
+      // EntireTop, EntireBottom, FullScreen
+      "Position": "FullScreen",
+
+      // OPTIONAL: must match ProcessWindowStyle enum name (e.g. Normal, Minimized, Maximized, Hidden)
+      "WindowStyle": "Normal",
+
+      // OPTIONAL: window title matching hints (used by your window handling logic)
+      // Tip: include both the process name and likely visible window captions.
+      "WindowTitles": ["rider64", "MySolution"],
+
+      // OPTIONAL: extra titles that may appear temporarily (splash screens, trust prompts, etc.)
+      "SplashTitles": ["splash", "Untrusted Directory"],
+
+      // OPTIONAL: if false, this app definition is ignored
+      "IsActive": true,
+
+      // OPTIONAL: if true, don't try to detect whether it's already running
+      "SkipRunningCheck": false,
+
+      // OPTIONAL: if set, becomes ProcessStartInfo.Verb (commonly "runas" for admin prompt)
+      "Verb": null,
+
+      // OPTIONAL: passed into ProcessStartInfo
+      "UseShellExecute": true,
+
+      // OPTIONAL: passed into ProcessStartInfo (often used with UseShellExecute=false)
+      "CreateNoWindow": false
+    },
+
+    {
+      // Example of the absolute minimum: ExecutablePath only.
+      // Name will be auto-filled to ExecutablePath by the DTO->Builder conversion.
+      "ExecutablePath": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+
+      // Everything below is optional, but typically helpful:
+      "Name": "Chrome",
+      "Category": "Productivity",
+      "ProcessName": "chrome",
+
+      "Arguments": [
+        {
+          "Name": "",
+          "Value": "https://example.com",
+          "IncludeNameInWindowTitles": false
+        }
+      ],
+
+      "Order": 2,
+      "MonitorIndex": 1,
+      "Position": "EntireRight",
+      "WindowStyle": "Normal",
+      "WindowTitles": ["chrome"]
+    }
+  ],
+
+  // ============================================================
+  // PowerShell helpers (copy/paste)
+  //
+  // Use these to discover ProcessName and MainWindowTitle values
+  // to improve ProcessName and WindowTitles in this config.
+  // ============================================================
+
+  // Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object ProcessName, MainWindowTitle
+
+  // Get-Process | ? { $_.Path -ne $null -and $_.Path -ne '' } | Select Responding,Description,ProcessName,CommandLine,Path,Threads,CPU,FileVersion,StartTime,MainWindowTitle
+}

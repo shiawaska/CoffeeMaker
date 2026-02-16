@@ -8,9 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interop\Interfaces\" />
     <Folder Include="Interop\Linux\" />
-    <Folder Include="Interop\Windows\" />
+    <None Update="StartupScriptApp.Resources.CoffeeMakerConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CoffeeMakerConfig.json" />
   </ItemGroup>
 
 </Project>

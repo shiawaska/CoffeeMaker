@@ -1,34 +1,18 @@
 ﻿namespace StartupScriptApp.Models.Configurations;
 
-public class AppConfigurationFile
-{
-    public DefaultsConfiguration? Defaults { get; set; }
-    public List<ApplicationDefinitionDto> Applications { get; set; } = new();
-    public List<MonitorConfig> Monitors { get; set; } = new();
-    
-}
-
-
-public class DefaultsConfiguration
-{
-    public int? WindowCaptureDelayMs { get; set; }
-    public int? ProcessCheckRetries { get; set; }
-    public int? DelayBeforeSnapMs { get; set; }
-}
-
 public class ApplicationDefinitionDto
 {
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string ExecutablePath { get; set; } = string.Empty;
     public string? WorkingDirectory { get; set; }
-    public string? Arguments { get; set; }
+    public List<ArgumentDefinition> Arguments { get; set; } = new();
     public string? ProcessName { get; set; }
     public int Order { get; set; }
     public bool IsActive { get; set; } = true;
     public bool SkipRunningCheck { get; set; }
     public int MonitorIndex { get; set; }
-    public string Position { get; set; } = "None";
+    public string Position { get; set; } = "fullscreen";
     public string? Verb { get; set; }
     public bool UseShellExecute { get; set; } = true;
     public bool CreateNoWindow { get; set; }

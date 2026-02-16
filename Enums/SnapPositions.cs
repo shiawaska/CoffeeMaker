@@ -1,7 +1,8 @@
-﻿namespace StartupScriptApp.Enums.SnapPosition;
+﻿namespace StartupScriptApp.Enums;
 
 public enum SnapPosition
 {
+    FullScreen,
     TopLeft,
     TopRight,
     BottomLeft,
@@ -9,6 +10,5 @@ public enum SnapPosition
     EntireLeft,
     EntireRight,
     EntireTop,
-    EntireBottom,
-    FullScreen,
+    EntireBottom
 }

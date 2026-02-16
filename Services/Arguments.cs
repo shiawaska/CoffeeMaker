@@ -1,15 +1,16 @@
 ﻿using StartupScriptApp.Enums;
 using StartupScriptApp.Interfaces;
-using StartupScriptApp.models.ApplicationDefinition;
 using StartupScriptApp.Models.Configurations;
-using StartupScriptApp.Models.Constants;
 
 namespace StartupScriptApp.Services;
 
-public abstract class Arguments(ILogger logger)
+public class Arguments(ILogger logger)
 {
     public readonly Dictionary<string, List<string>> argDict =
-        new ();
+        new();
+    
+    private bool _debug;
+    private bool _verbose;
     public bool debug => argDict.ContainsKey("debug");
     public bool verbose => argDict.ContainsKey("verbose") || argDict.ContainsKey("v");
 
@@ -24,7 +25,9 @@ public abstract class Arguments(ILogger logger)
         "--use-defined-monitors", // Use defined monitor layout instead of OS-detected
         "--noSnap", // Don't snap windows after starting
         "--debug", // Enable debug output (e.g. window titles and handles)
+        "--ext-search", // Enable extended search for window titles (useful for apps that spawn child processes for their windows)
         "--delaystart", // Delay start of all apps by specified ms (e.g. to wait for windows to finish its other startup actions)
+        
     };
 
     private readonly HashSet<string> ValidArgsWithValues = new ()
@@ -39,6 +42,7 @@ public abstract class Arguments(ILogger logger)
         "--monitor", // Can take multiple apps to that monitor (or empty for all)
         "--process", // Window snap: process name
         "--snap", // Window snap: snap position
+        "--path", // use alternate path for the config file
     };
 
     public void SetArgs(string[] args)
@@ -61,10 +65,10 @@ public abstract class Arguments(ILogger logger)
 
         if (debug)
         {
-            logger.DebugLog("\nParsed Arguments:");
+            logger.LogDebug("\nParsed Arguments:");
             foreach (var kvp in argDict)
             {
-                logger.DebugLog($"\n  {kvp.Key}: {string.Join(", ", kvp.Value)}");
+                logger.LogDebug($"\n  {kvp.Key}: {string.Join(", ", kvp.Value)}");
             }
         }
     }
@@ -80,8 +84,8 @@ public abstract class Arguments(ILogger logger)
             {
                 if (!ValidFlags.Contains(argLower) && !ValidArgsWithValues.Contains(argLower))
                 {
-                    logger.InfoLog($"\nUnknown argument: {arg}");
-                    logger.InfoLog(
+                    logger.LogInfo($"\nUnknown argument: {arg}");
+                    logger.LogInfo(
                         $"debug @@ \nValid options: {string.Join(", ", ValidFlags.Concat(ValidArgsWithValues))}"
                     );
                     Environment.Exit(1);
@@ -105,12 +109,19 @@ public abstract class Arguments(ILogger logger)
         var normalized = key.TrimStart('-').ToLowerInvariant();
         return argDict.ContainsKey(normalized);
     }
+    public static bool HasFlag(string key, Arguments arguments)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            return false;
+        var normalized = key.TrimStart('-').ToLowerInvariant();
+        return arguments.argDict.ContainsKey(normalized);
+    }
 
     private void PrintHelp()
     {
         var groups = string.Join(", ", Enum.GetNames(typeof(Categories)));
 
-        logger.InfoLog(
+        logger.LogInfo(
             @"
             StartupScript - Application Launcher
 
@@ -161,14 +172,14 @@ public abstract class Arguments(ILogger logger)
 
     private void PrintApps(bool verbose = false)
     {
-        logger.InfoLog("Available Applications:");
+        logger.LogInfo("Available Applications:");
         foreach (var app in ConfigurationsDefaults.Applications)
         {
             if (app.IsActive)
             {
                 if (verbose)
                 {
-                    logger.InfoLog(
+                    logger.LogInfo(
                         $"\n{app.Name}\n"
                             + $"  Category        : {app.Category}\n"
                             + $"  Executable      : {app.ExecutablePath}\n"
@@ -182,7 +193,7 @@ public abstract class Arguments(ILogger logger)
                     );
                 }
                 else
-                    logger.InfoLog($"\n - {app.Name} \nCategory: {app.Category}");
+                    logger.LogInfo($"\n - {app.Name} \nCategory: {app.Category}");
             }
         }
         Environment.Exit(0);
