@@ -48,7 +48,7 @@ public class WindowInterop
     public static extern bool IsWindowVisible(IntPtr hWnd);
 
     /// <summary>
-    ///  Determines whether the specified window is arranged (iconic).
+    ///  Determines whether the specified window is arranged.
     /// </summary>
     /// <param name="hWnd"> A handle to a window. </param>
     /// <returns> True if the window is arranged; otherwise, false. </returns>

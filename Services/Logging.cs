@@ -2,6 +2,7 @@
 using StartupScriptApp.Enums;
 using StartupScriptApp.Interfaces;
 using StartupScriptApp.Models;
+using StartupScriptApp.Models.ApplicationDefinition;
 
 namespace StartupScriptApp.Services;
 
@@ -44,29 +45,30 @@ public class Logging : ILogger
     /// <param name="arguments">The arguments to be used for logging operations.</param>
     public void SetArguments(Arguments arguments) => _arguments = arguments;
 
-    private sealed class LogOptions
-    {
-        public string Message { get; init; } = string.Empty;
-        public List<LogLevel> Level { get; init; } = [];
-    }
-
     private void Log(LogOptions options)
     {
         try
         {
-            bool debug = _arguments.debug;
-            bool verbose = _arguments.verbose;
+            bool debug = _arguments.HasFlag("--debug");
+            bool verbose = _arguments.HasFlag("--verbose") || _arguments.HasFlag("--v");
 
+            if (options.VerboseGate is true && !verbose)
+                return;
+
+            if (options.VerboseGate is false && verbose)
+                return;
+            
             bool shouldPrint = true;
-
-            if (options.Level.Contains(LogLevel.Debug) && !debug)
-            {
-                shouldPrint = debug;
-            }
-            else if (options.Level.Contains(LogLevel.Verbose) && !verbose)
-            {
-                shouldPrint = verbose;
-            }
+            
+            if (_arguments.HasFlag("--debug"))
+                if (options.Level.Contains(LogLevel.Debug) && !debug)
+                {
+                    shouldPrint = debug;
+                }
+                else if (options.Level.Contains(LogLevel.Verbose) && !verbose)
+                {
+                    shouldPrint = verbose;
+                }
 
             if (shouldPrint)
             {
@@ -116,17 +118,24 @@ public class Logging : ILogger
         return message;
     }
 
-    public void LogMulti(string input, params LogLevel[] levels) =>
-        Log(new LogOptions { Message = input, Level = [.. levels] });
-
-    public void LogDebug(string input) =>
+    public void LogDebug(string input, bool? verboseGate = null) =>
         Log(new LogOptions { Message = input, Level = [LogLevel.Debug] });
 
-    public void LogVerbose(string input) =>
-        Log(new LogOptions { Message = input, Level = [LogLevel.Verbose] });
+    public void LogDebug(string input, Area[] areas, bool? verboseGate = null) =>
+        Log(
+            new LogOptions
+            {
+                Message = input,
+                Level = [LogLevel.Debug],
+                Areas = [.. areas],
+            }
+        );
 
-    public void LogInfo(string input) =>
+    public void LogInfo(string input, bool? verboseGate = null) =>
         Log(new LogOptions { Message = input, Level = [LogLevel.Info] });
+
+    public void LogError() =>
+        Log(new LogOptions { Message = GetErrorMessage(), Level = [LogLevel.Error] });
 
     public void LogError(Exception ex, string? message = null) =>
         Log(
@@ -134,38 +143,37 @@ public class Logging : ILogger
             {
                 Message = !string.IsNullOrEmpty(message) ? $"{message} : {ex}" : ex.ToString(),
                 Level = [LogLevel.Error],
+                VerboseGate = true
             }
         );
 
-    public void LogError(string input) =>
-        Log(new LogOptions { Message = input, Level = [LogLevel.Error] });
+   public void LogError(string input, bool? verboseGate = null) =>
+        Log(new LogOptions { Message = input + " Use --verbose to get more details", Level = [LogLevel.Error] });
 
-    public void LogError() =>
-        Log(new LogOptions { Message = GetErrorMessage(), Level = [LogLevel.Error] });
-
-    public void PrintApps()
+    public void PrintApps(List<ApplicationDefinition> apps, string? headerMessage = null)
     {
-        var apps = ConfigurationsDefaults.Applications;
+        LogDebug("\n\n" + (headerMessage ?? "Applications"),[ Area.Application]);
+
         foreach (var app in apps)
         {
-            LogDebug("\n\n");
-            LogDebug($"Name: {app.Name}");
-            LogDebug($"Category: {app.Category}");
-            LogDebug($"ExecutablePath: {app.ExecutablePath}");
-            LogDebug($"WorkingDirectory: {app.WorkingDirectory}");
-            LogDebug($"Arguments: {app.Arguments}");
-            LogDebug($"ProcessName: {app.ProcessName}");
-            LogDebug($"Order: {app.Order}");
-            LogDebug($"IsActive: {app.IsActive}");
-            LogDebug($"SkipRunningCheck: {app.SkipRunningCheck}");
-            LogDebug($"MonitorIndex: {app.MonitorIndex}");
-            LogDebug($"Position: {app.Position}");
-            LogDebug($"Verb: {app.Verb}");
-            LogDebug($"UseShellExecute: {app.UseShellExecute}");
-            LogDebug($"CreateNoWindow: {app.CreateNoWindow}");
-            LogDebug($"WindowStyle: {app.WindowStyle}");
-            LogDebug($"WindowTitles: {string.Join(", ", app.WindowTitles)}");
-            LogDebug($"SplashTitles: {string.Join(", ", app.SplashTitles)}");
+            LogDebug("\n", [ Area.Application]);
+            LogDebug($"Name: {app.Name}", [ Area.Application]);
+            LogDebug($"Category: {app.Category}", [ Area.Application]);
+            LogDebug($"ExecutablePath: {app.ExecutablePath}", [ Area.Application]);
+            LogDebug($"WorkingDirectory: {app.WorkingDirectory}", [ Area.Application]);
+            LogDebug($"Arguments: {app.Arguments}", [ Area.Application]);
+            LogDebug($"ProcessName: {app.ProcessName}", [ Area.Application]);
+            LogDebug($"Order: {app.Order}", [Area.Application]);
+            LogDebug($"IsActive: {app.IsActive}", [Area.Application]);
+            LogDebug($"SkipRunningCheck: {app.SkipRunningCheck}", [Area.Application]);
+            LogDebug($"MonitorIndex: {app.MonitorIndex}", [Area.Application]);
+            LogDebug($"Position: {app.Position}", [Area.Application]);
+            LogDebug($"Verb: {app.Verb}", [Area.Application]);
+            LogDebug($"UseShellExecute: {app.UseShellExecute}", [Area.Application]);
+            LogDebug($"CreateNoWindow: {app.CreateNoWindow}", [Area.Application]);
+            LogDebug($"WindowStyle: {app.WindowStyle}", [Area.Application]);
+            LogDebug($"WindowTitles: {string.Join(", ", app.WindowTitles)}", [Area.Application]);
+            LogDebug($"SplashTitles: {string.Join(", ", app.SplashTitles)}", [Area.Application]);
         }
     }
 
@@ -177,25 +185,35 @@ public class Logging : ILogger
         LogDebug($"DelayBeforeSnapMs: {ConfigurationsDefaults.DelayBeforeSnapMs}");
     }
 
-    public void PrintMonitors(List<MonitorInfo> monitors)
+    public void PrintMonitors(string headerMessage, List<MonitorInfo> monitors)
     {
-        LogDebug($"Found {monitors.Count} monitors.");
+        LogDebug($"\n\n{headerMessage}, Count: {monitors.Count}", [ Area.Monitor, Area.Config]);
         var index = 0;
         foreach (var monitor in monitors)
         {
             LogDebug(
-                $"\n\n Monitor {index++}: Resolution: {monitor.Width}x{monitor.Height}, IsPrimary: {monitor.IsPrimary}"
+                $"\n\n Monitor {index++}: Resolution: {monitor.Width}x{monitor.Height}, IsPrimary: {monitor.IsPrimary}", [ Area.Monitor, Area.Config]
             );
 
-            LogDebug($"\n    Bounds.Bottom: {monitor.Bounds.Bottom}");
-            LogDebug($"    Bounds.Top: {monitor.Bounds.Top}");
-            LogDebug($"    Bounds.Width: {monitor.Bounds.Width}");
-            LogDebug($"    Bounds.Height: {monitor.Bounds.Height}");
+            LogDebug($"\n    Bounds.Bottom: {monitor.Bounds.Bottom}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Top: {monitor.Bounds.Top}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Width: {monitor.Bounds.Width}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Height: {monitor.Bounds.Height}", [ Area.Monitor, Area.Config]);
 
-            LogDebug($"\n    WorkArea.Bottom: {monitor.WorkArea.Bottom}");
-            LogDebug($"    WorkArea.Top: {monitor.WorkArea.Top}");
-            LogDebug($"    WorkArea.Width: {monitor.WorkArea.Width}");
-            LogDebug($"    WorkArea.Height: {monitor.WorkArea.Height}");
+            LogDebug($"\n    WorkArea.Bottom: {monitor.WorkArea.Bottom}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    WorkArea.Top: {monitor.WorkArea.Top}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    WorkArea.Width: {monitor.WorkArea.Width}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    WorkArea.Height: {monitor.WorkArea.Height}", [ Area.Monitor, Area.Config]);
         }
     }
+}
+
+public class LogOptions
+{
+    public string Message { get; init; } = string.Empty;
+    public List<LogLevel>? Level { get; init; } = [];
+    public List<Area>? Areas { get; init; } = [];
+    
+    // null = any, true = only with --verbose, false = only without --verbose
+    public bool? VerboseGate { get; init; } = null;
 }

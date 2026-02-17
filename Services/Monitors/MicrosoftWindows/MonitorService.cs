@@ -21,7 +21,6 @@ public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMo
             monitors = ConfigurationsDefaults.Monitors;
         else
             monitors = GetOsMonitors();
-        logger.PrintMonitors(monitors);
         return monitors;
     }
 
@@ -43,6 +42,7 @@ public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMo
             
             var index = 0;
             list.ForEach(monitor => monitor.Index = index++);
+            logger.PrintMonitors("Monitors loaded from OS ", list);
             return list;
         }
         finally

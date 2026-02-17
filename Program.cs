@@ -33,7 +33,7 @@ public class Program
 
         if (arguments.HasFlag("path"))
         {
-            arguments.argDict.TryGetValue("path", out var customPath);
+            arguments.ArgDict.TryGetValue("path", out var customPath);
             if (!string.IsNullOrEmpty(customPath?[0]))
                 path = customPath[0];
         }
@@ -50,7 +50,7 @@ public class Program
         Arguments arguments
     )
     {
-        var proceed = processManager.ProcessStartupChecklistAsync(app, arguments.argDict);
+        var proceed = processManager.ProcessStartupChecklistAsync(app, arguments.ArgDict);
         if (!proceed)
             return;
         var process = processManager.StartProcess(app.ToProcessStartInfo());
@@ -66,7 +66,7 @@ public class Program
         if (windowHandle.All(p => p == IntPtr.Zero))
             return;
         windowHandle.ForEach(wh =>
-            windowManager.SetWindowPosition(wh, app.Position, monitors[app.MonitorIndex - 1], 1)
+            windowManager.SetWindowPosition(wh, app.Position, monitors[app.MonitorIndex - 1])
         );
     }
 
@@ -120,7 +120,7 @@ public class Program
     {
         if (arguments.HasFlag("--delay"))
         {
-            var delay = arguments.argDict["delay"][0];
+            var delay = arguments.ArgDict["delay"][0];
 
             var success = int.TryParse(delay, out var delayInt);
             if (!success)

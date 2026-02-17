@@ -6,13 +6,9 @@ namespace StartupScriptApp.Services;
 
 public class Arguments(ILogger logger)
 {
-    public readonly Dictionary<string, List<string>> argDict =
-        new();
+    public readonly Dictionary<string, List<string>> ArgDict = new();
 
-    public bool debug => argDict.ContainsKey("debug");
-    public bool verbose => argDict.ContainsKey("verbose") || argDict.ContainsKey("v");
-
-    private readonly HashSet<string> ValidFlags = new ()
+    private readonly HashSet<string> ValidFlags = new()
     {
         "--seq", // Sequential startup
         "--help", // Show help
@@ -25,10 +21,9 @@ public class Arguments(ILogger logger)
         "--debug", // Enable debug output (e.g. window titles and handles)
         "--ext-search", // Enable extended search for window titles (useful for apps that spawn child processes for their windows)
         "--delaystart", // Delay start of all apps by specified ms (e.g. to wait for windows to finish its other startup actions)
-        
     };
 
-    private readonly HashSet<string> ValidArgsWithValues = new ()
+    private readonly HashSet<string> ValidArgsWithValues = new()
     {
         "--group", // Can take multiple groups (IDEs, Coms, Utils, Doc)
         "--start", // Can take multiple apps to start
@@ -45,28 +40,27 @@ public class Arguments(ILogger logger)
 
     public void SetArgs(string[] args)
     {
-        argDict.Clear();
+        ArgDict.Clear();
         BuildArgDict(args);
 
-        if (argDict.ContainsKey("help") || argDict.ContainsKey("h"))
+        if (HasFlag("--help") || HasFlag("--h"))
         {
             PrintHelp();
             Environment.Exit(0);
         }
 
-        if (argDict.ContainsKey("apps"))
+        if (HasFlag("--apps"))
         {
-            var verbose = argDict.ContainsKey("verbose") || argDict.ContainsKey("v");
-            PrintApps(verbose);
+            PrintApps();
             Environment.Exit(0);
         }
 
-        if (debug)
+        if (HasFlag("--debug"))
         {
-            logger.LogDebug("\nParsed Arguments:");
-            foreach (var kvp in argDict)
+            logger.LogDebug("\nParsed Arguments:", [Area.Arguments]);
+            foreach (var kvp in ArgDict)
             {
-                logger.LogDebug($"\n  {kvp.Key}: {string.Join(", ", kvp.Value)}");
+                logger.LogDebug($"\n  {kvp.Key}: {string.Join(", ", kvp.Value)}", [Area.Arguments]);
             }
         }
     }
@@ -90,12 +84,12 @@ public class Arguments(ILogger logger)
                 }
 
                 currentKey = argLower.TrimStart('-');
-                if (!argDict.ContainsKey(currentKey))
-                    argDict[currentKey] = new List<string>();
+                if (!ArgDict.ContainsKey(currentKey))
+                    ArgDict[currentKey] = new List<string>();
             }
             else if (currentKey != null)
             {
-                argDict[currentKey].Add(arg);
+                ArgDict[currentKey].Add(arg);
             }
         }
     }
@@ -105,14 +99,22 @@ public class Arguments(ILogger logger)
         if (string.IsNullOrWhiteSpace(key))
             return false;
         var normalized = key.TrimStart('-').ToLowerInvariant();
-        return argDict.ContainsKey(normalized);
+        return ArgDict.ContainsKey(normalized);
     }
+
     public static bool HasFlag(string key, Arguments arguments)
     {
         if (string.IsNullOrWhiteSpace(key))
             return false;
         var normalized = key.TrimStart('-').ToLowerInvariant();
-        return arguments.argDict.ContainsKey(normalized);
+        return arguments.ArgDict.ContainsKey(normalized);
+    }
+
+    public bool HasArgWithValue(string arg, string value)
+    {
+        if (!ArgDict.ContainsKey(arg))
+            return false;
+        return ArgDict[arg].Contains(value, StringComparer.OrdinalIgnoreCase);
     }
 
     private void PrintHelp()
@@ -168,30 +170,27 @@ public class Arguments(ILogger logger)
         );
     }
 
-    private void PrintApps(bool verbose = false)
+    private void PrintApps()
     {
         logger.LogInfo("Available Applications:");
         foreach (var app in ConfigurationsDefaults.Applications)
         {
             if (app.IsActive)
             {
-                if (verbose)
-                {
-                    logger.LogInfo(
-                        $"\n{app.Name}\n"
-                            + $"  Category        : {app.Category}\n"
-                            + $"  Executable      : {app.ExecutablePath}\n"
-                            + $"  Arguments       : {app.Arguments ?? "(none)"}\n"
-                            + $"  Process Name    : {app.ProcessName}\n"
-                            + $"  Working Dir     : {app.WorkingDirectory ?? "(none)"}\n"
-                            + $"  Order           : {app.Order}\n"
-                            + $"  Monitor         : {app.MonitorIndex}\n"
-                            + $"  Position        : {app.Position}\n"
-                            + $"  Window Style    : {app.WindowStyle}\n"
-                    );
-                }
-                else
-                    logger.LogInfo($"\n - {app.Name} \nCategory: {app.Category}");
+                logger.LogInfo($"\n - {app.Name} \nCategory: {app.Category}", false);
+                logger.LogInfo(
+                    $"\n{app.Name}\n"
+                        + $"  Category        : {app.Category}\n"
+                        + $"  Executable      : {app.ExecutablePath}\n"
+                        + $"  Arguments       : {app.Arguments ?? "(none)"}\n"
+                        + $"  Process Name    : {app.ProcessName}\n"
+                        + $"  Working Dir     : {app.WorkingDirectory ?? "(none)"}\n"
+                        + $"  Order           : {app.Order}\n"
+                        + $"  Monitor         : {app.MonitorIndex}\n"
+                        + $"  Position        : {app.Position}\n"
+                        + $"  Window Style    : {app.WindowStyle}\n",
+                    true
+                );
             }
         }
         Environment.Exit(0);

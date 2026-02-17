@@ -1,26 +1,31 @@
 ﻿using System.Diagnostics;
+using StartupScriptApp.Enums;
 using StartupScriptApp.Extensions;
 using StartupScriptApp.Interfaces;
-using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
 
 namespace StartupScriptApp.Services;
 
 public class ProcessManagement(ILogger logger)
 {
-    public bool IsProcessRunning(string processName)
+    private bool IsProcessRunning(string processName)
     {
-        logger.LogDebug($"\n\n Checking if process '{processName}' is running...");
+        logger.LogDebug(
+            $"\n\n Checking if process '{processName}' is running...",
+           [ Area.Process]
+        );
         var isEmpty = string.IsNullOrWhiteSpace(processName);
 
         if (isEmpty)
         {
-            logger.LogDebug("Process name is empty or whitespace. Skipping running check.");
+            logger.LogInfo(
+                "Process name is empty or whitespace. Skipping running check."
+            );
             return false;
         }
         bool running = Process.GetProcessesByName(processName).Length > 0;
 
-        logger.LogDebug($"Process '{processName}' running: {running}");
+        logger.LogDebug($"Process '{processName}' running: {running}", [ Area.Process]);
         return running;
     }
 
@@ -29,44 +34,60 @@ public class ProcessManagement(ILogger logger)
         try
         {
             logger.LogDebug(
-                $"\n\n Starting process: {processStartInfo.FileName}, args: {processStartInfo.Arguments}, or working directory {processStartInfo.WorkingDirectory} with window style {processStartInfo.WindowStyle}, UseShellExecute={processStartInfo.UseShellExecute}"
-            );
-            logger.LogDebug(
-                $"ProcessStartInfo details: FileName='{processStartInfo.FileName}'"
+                @$" 
+
+                    Starting process: {processStartInfo.FileName}
+                    Args: {processStartInfo.Arguments}
+                    Working directory: {processStartInfo.WorkingDirectory}
+                    Window style: {processStartInfo.WindowStyle}
+                    UseShellExecute: {processStartInfo.UseShellExecute}
+                    Verb: {processStartInfo.Verb}
+                ", [Area.Process]
             );
             var process = Process.Start(processStartInfo);
-            if (process != null)
+            if (process?.HasExited == false)
             {
-                // Wait for the process to start and get a valid MainWindowHandle if possible
-                process.Refresh();
+                logger.LogDebug(
+                    $"Started process '{process.ProcessName}' (PID: {process.Id}) successfully.",
+                    [Area.Process]
+                );
             }
             return process;
         }
         catch (Exception ex)
         {
-            logger.LogInfo($"\n {ex.Message}");
+            logger.LogInfo($" Start process has thrown an exception \n {ex.Message}");
         }
 
         return null;
-
     }
-    
-    public bool ProcessStartupChecklistAsync(ApplicationDefinition app ,Dictionary<string, List<string>> argDict)
+
+    public bool ProcessStartupChecklistAsync(
+        ApplicationDefinition app,
+        Dictionary<string, List<string>> argDict
+    )
     {
-        bool shouldStart = false;
-        bool runningCheck = false;
+        logger.LogDebug($"\n\n Checking startup checklist for app: {app.Name}", [Area.Process]);
+        bool shouldStart = app.ShouldProcessApp(argDict);;
+        bool runningCheck = app.ShouldSkipProcessCheck(argDict);
         bool isRunning = false;
-        
-        shouldStart = app.ShouldProcessApp(argDict);
-        runningCheck = app.ShouldSkipProcessCheck(argDict);
-        
+
+        logger.LogDebug(
+            $"Should start: {shouldStart}, running check: {runningCheck}",
+           [ Area.Process]
+        );
+
         if (shouldStart && runningCheck)
         {
             isRunning = IsProcessRunning(app.ProcessName ?? string.Empty);
+            logger.LogDebug($"Is process running: {isRunning}", [Area.Process]);
+        }
+        else
+        {
+            logger.LogDebug("Skipping process running check.", [Area.Process]);
         }
 
         return shouldStart && (!runningCheck || !isRunning);
-                
     }
 
     /// <summary>
@@ -76,18 +97,25 @@ public class ProcessManagement(ILogger logger)
     /// <param name="processName">The expected main process name.</param>
     /// <param name="timeoutMs">How long to wait for the main process to appear.</param>
     /// <returns>The main process with a window, or null if not found.</returns>
-    public Process? FindMainProcess(Process starterProcess, string processName, int timeoutMs = 5000)
+    public Process? FindMainProcess(
+        Process starterProcess,
+        string processName,
+        int timeoutMs = 5000
+    )
     {
         if (string.IsNullOrWhiteSpace(processName))
         {
-            logger.LogInfo("FindMainProcess: processName is null or empty. Cannot search for main process.");
+            logger.LogInfo(
+                "FindMainProcess: processName is null or empty. Cannot search for main process."
+            );
             return null;
         }
         var startTime = starterProcess.StartTime;
         var sw = Stopwatch.StartNew();
         while (sw.ElapsedMilliseconds < timeoutMs)
         {
-            var candidates = Process.GetProcessesByName(processName)
+            var candidates = Process
+                .GetProcessesByName(processName)
                 .Where(p => p.Id != starterProcess.Id && p.StartTime >= startTime)
                 .ToList();
             foreach (var proc in candidates)
@@ -95,13 +123,17 @@ public class ProcessManagement(ILogger logger)
                 proc.Refresh();
                 if (proc.MainWindowHandle != IntPtr.Zero)
                 {
-                    logger.LogDebug($"Found main process: {proc.ProcessName} (PID: {proc.Id}) with window handle {proc.MainWindowHandle}");
+                    logger.LogDebug(
+                        $"Found main process: {proc.ProcessName} (PID: {proc.Id}) with window handle {proc.MainWindowHandle}"
+                    );
                     return proc;
                 }
             }
             Thread.Sleep(500);
         }
-        logger.LogInfo($"Could not find main process with window for '{processName}' after {timeoutMs}ms");
+        logger.LogInfo(
+            $"Could not find main process with window for '{processName}' after {timeoutMs}ms"
+        );
         return null;
-    }   
+    }
 }

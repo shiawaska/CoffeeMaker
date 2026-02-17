@@ -1,19 +1,12 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using StartupScriptApp.Enums;
 using StartupScriptApp.Interfaces;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
 using StartupScriptApp.Models.Configurations;
 
 namespace StartupScriptApp.Services;
-
-public interface IConfigurationService
-{
-    Task<AppConfigFile> LoadConfigurationAsync(string filePath);
-    void BuildApplicationDefinitions(List<ApplicationDefinitionDto> definitions);
-    void ApplyDefaults(ConfigDefaults defaults);
-    void InitializeFromJson(string filePath);
-}
 
 public class Configuration(ILogger logger) : IConfigurationService
 {
@@ -23,13 +16,14 @@ public class Configuration(ILogger logger) : IConfigurationService
         var json = string.Empty;
         try
         {
-            logger.LogDebug($"Attempting to load configuration file: {filePath}");
+            logger.LogDebug($"Attempting to load configuration file: {filePath}", [Area.Config]);
 
             json = await File.ReadAllTextAsync(filePath);
-            logger.LogDebug($"Loaded configuration file: {filePath}");
+            logger.LogDebug($"Loaded configuration file: {filePath}", [Area.Config]);
         }
         catch (Exception ex)
         {
+            logger.LogError("Failed to load configuration file. Exiting.");
             logger.LogError(ex, $"Failed to load configuration file: {filePath}");
             Environment.Exit(2);
         }
@@ -53,7 +47,13 @@ public class Configuration(ILogger logger) : IConfigurationService
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"\nException occured: \n {filePath}");
+            logger.LogError(
+                "Exception occured during configuration file deserialization. Exiting."
+            );
+            logger.LogError(
+                ex,
+                $"\nException occured during configuration file deserialization: \n {filePath}"
+            );
 
             Environment.Exit(3);
         }
@@ -63,19 +63,36 @@ public class Configuration(ILogger logger) : IConfigurationService
 
     public void BuildApplicationDefinitions(List<ApplicationDefinitionDto> definitions)
     {
-        var builders = definitions.Select(dto => (ApplicationDefinition.Builder)dto).ToList();
-        ConfigurationsDefaults.Applications = builders.Select(b => b.Build()).Where(a => a.IsActive).OrderBy(a => a.Order).ToList();
-        
+        logger.LogDebug("Building application definitions from configuration", [Area.Config]);
+
+        try
+        {
+            var builders = definitions.Select(dto => (ApplicationDefinition.Builder)dto).ToList();
+            ConfigurationsDefaults.Applications = builders
+                .Select(b => b.Build())
+                .Where(a => a.IsActive)
+                .OrderBy(a => a.Order)
+                .ToList();
+            logger.PrintApps(ConfigurationsDefaults.Applications, "Applications Loaded :");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to build application definitions from configuration. Exiting.");
+            logger.LogError(ex, "Failed to build application definitions from configuration.");
+            Environment.Exit(1);
+        }
     }
 
     public void ApplyDefaults(ConfigDefaults? defaults)
     {
+        logger.LogDebug("Applying default configuration values", [Area.Config]);
         ConfigurationsDefaults.WindowCaptureDelayMs =
             defaults?.WindowCaptureDelayMs ?? ConfigurationsDefaults.WindowCaptureDelayMs;
         ConfigurationsDefaults.WindowCaptureRetries =
             defaults?.WindowCaptureRetries ?? ConfigurationsDefaults.WindowCaptureRetries;
         ConfigurationsDefaults.DelayBeforeSnapMs =
             defaults?.DelayBeforeSnapMs ?? ConfigurationsDefaults.DelayBeforeSnapMs;
+        logger.PrintDefaults();
     }
 
     public void InitializeFromJson(string filePath)
@@ -84,8 +101,6 @@ public class Configuration(ILogger logger) : IConfigurationService
         BuildApplicationDefinitions(file.Applications);
         ApplyDefaults(file.Defaults);
         LoadMonitorConfig(file.Monitors);
-        logger.PrintDefaults();
-        logger.PrintApps();
     }
 
     private async Task TestConfigAvailability(string filePath)
@@ -113,6 +128,8 @@ public class Configuration(ILogger logger) : IConfigurationService
 
     private void LoadMonitorConfig(List<MonitorInfo> monitors)
     {
+        logger.LogDebug("Loading monitor configuration", [Area.Config]);
         ConfigurationsDefaults.Monitors = monitors;
+        logger.PrintMonitors("Monitors Loaded from config file ", ConfigurationsDefaults.Monitors);
     }
 }
