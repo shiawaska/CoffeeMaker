@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
+using StartupScriptApp.Models.Constants;
 
 namespace StartupScriptApp.Extensions;
 
@@ -123,5 +124,15 @@ public static class AppDefinitionExtensions
     private static bool IsDefaultStartAll(Dictionary<string, List<string>> argDict)
     {
         return !argDict.ContainsKey("group") && !argDict.ContainsKey("start");
+    }
+    
+    public static int GetWindowState(this ApplicationDefinition app)
+    {
+        return app.WindowStyle switch
+        {
+            ProcessWindowStyle.Minimized => SnapConstants.SW_SHOWMINIMIZED,
+            ProcessWindowStyle.Maximized => SnapConstants.SW_SHOWMAXIMIZED,
+            _ => SnapConstants.SW_SHOWNORMAL
+        };
     }
 }

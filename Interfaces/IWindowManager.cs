@@ -9,5 +9,5 @@ public interface IWindowManager
 {
     public Task<List<IntPtr>> FindWindowAsync(ApplicationDefinition app);
     public Task<List<IntPtr>> FindWindowAsync(ApplicationDefinition app, Process proc);
-    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor);
+    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor, int state);
 }

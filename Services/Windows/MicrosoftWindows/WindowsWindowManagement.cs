@@ -71,7 +71,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         return handles.Where(h => h != IntPtr.Zero).Distinct().ToList();
     }
 
-    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor)
+    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor, int state)
     {
         var bounds = CalculateSnapSize(monitor, snapPosition);
 
@@ -100,13 +100,19 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             bounds.Y,
             bounds.Width,
             bounds.Height,
-            uflag
+            0
         );
 
         if (!result)
             logger.LogError();
         else
-            logger.LogDebug($"Window postion set on {hWnd}", [Area.Window]);
+            logger.LogDebug($"Window position set on {hWnd}", [Area.Window]);
+        
+        result = WindowInterop.ShowWindow(hWnd, uflag);
+        if (!result)
+            logger.LogError();
+        else
+            logger.LogDebug($"Window state set on {hWnd}", [Area.Window]);
 
         return result;
     }
@@ -257,7 +263,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
     private int GetRetries(ApplicationDefinition app) =>
         app.ShouldRetry(arguments.ArgDict) ? ConfigurationsDefaults.WindowCaptureRetries : 0;
 
-    private uint GetWindowState(IntPtr hWnd)
+    private int GetWindowState(IntPtr hWnd)
     {
         if (WindowInterop.IsIconic(hWnd))
         {

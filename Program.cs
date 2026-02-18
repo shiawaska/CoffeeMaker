@@ -1,4 +1,5 @@
-﻿using StartupScriptApp.Interfaces;
+﻿using StartupScriptApp.Extensions;
+using StartupScriptApp.Interfaces;
 using StartupScriptApp.Interop.Interfaces;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
@@ -65,8 +66,11 @@ public class Program
 
         if (windowHandle.All(p => p == IntPtr.Zero))
             return;
+
+        var index = monitors.CalculateMonitorIndex(app.MonitorIndex);
+        
         windowHandle.ForEach(wh =>
-            windowManager.SetWindowPosition(wh, app.Position, monitors[app.MonitorIndex - 1])
+            windowManager.SetWindowPosition(wh, app.Position, monitors[index], app.GetWindowState())
         );
     }
 

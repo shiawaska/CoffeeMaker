@@ -120,6 +120,7 @@
       // OPTIONAL: must match SnapPosition enum:
       // TopLeft, TopRight, BottomLeft, BottomRight, EntireLeft, EntireRight,
       // EntireTop, EntireBottom, FullScreen
+      // Will default to Fullscreen if not provided
       "Position": "FullScreen",
 
       // OPTIONAL: must match ProcessWindowStyle enum name (e.g. Normal, Minimized, Maximized, Hidden)
@@ -130,6 +131,7 @@
       "WindowTitles": ["rider64", "MySolution"],
 
       // OPTIONAL: extra titles that may appear temporarily (splash screens, trust prompts, etc.)
+      // The Window relocation service will wait for these to finish before cosuming retries to find and move the window
       "SplashTitles": ["splash", "Untrusted Directory"],
 
       // OPTIONAL: if false, this app definition is ignored
@@ -169,8 +171,7 @@
       "Order": 2,
       "MonitorIndex": 1,
       "Position": "EntireRight",
-      "WindowStyle": "Normal",
-      "WindowTitles": ["chrome"]
+      "WindowStyle": "Normal"
     }
   ],
 

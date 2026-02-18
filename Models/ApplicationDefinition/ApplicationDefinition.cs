@@ -112,8 +112,12 @@ public sealed class ApplicationDefinition
             return this;
         }
 
-        public Builder WithExecutablePath(string path) =>
-            Set(ep => ep._executablePath = path ?? throw new ArgumentNullException(nameof(path)));
+        public Builder WithExecutablePath(string path)
+        {
+            if (File.Exists(path))
+                _executablePath = path ?? throw new ArgumentNullException(nameof(path));
+            return this;
+        }
 
         public Builder WithWorkingDirectory(string? workingDirectory)
         {
@@ -180,6 +184,7 @@ public sealed class ApplicationDefinition
                 _windowTitles.Add(title);
             return this;
         }
+
         public Builder AddWindowTitle(List<string> title)
         {
             if (!title.All(string.IsNullOrWhiteSpace))
@@ -228,7 +233,7 @@ public sealed class ApplicationDefinition
 
         public Builder AddSplashTitle(List<string> title)
         {
-                _splashTitles.AddRange(title.Where(t => !string.IsNullOrWhiteSpace(t.Trim())));
+            _splashTitles.AddRange(title.Where(t => !string.IsNullOrWhiteSpace(t.Trim())));
             return this;
         }
 
@@ -242,7 +247,9 @@ public sealed class ApplicationDefinition
             if (string.IsNullOrWhiteSpace(_executablePath))
                 throw new ArgumentException("Executable path cannot be empty.");
             
-            
+            if (_useShellExecute == false && _windowStyle == ProcessWindowStyle.Hidden)
+                throw new ArgumentException("Window style cannot be hidden while use shell execute is false.");
+
             return new ApplicationDefinition(this);
         }
 
@@ -292,12 +299,17 @@ public sealed class ApplicationDefinition
                 throw new ArgumentNullException(nameof(definition));
 
             return New()
-                .WithName(definition.Name ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath))
+                .WithName(
+                    definition.Name ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath)
+                )
                 .WithCategory(definition.Category)
                 .WithExecutablePath(definition.ExecutablePath)
                 .WithWorkingDirectory(definition.WorkingDirectory)
                 .AddArgument(definition.Arguments)
-                .WithProcessName(definition.ProcessName ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath))
+                .WithProcessName(
+                    definition.ProcessName
+                        ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath)
+                )
                 .WithOrder(definition.Order)
                 .IsActive(definition.IsActive)
                 .SkipRunningCheck(definition.SkipRunningCheck)
@@ -307,7 +319,11 @@ public sealed class ApplicationDefinition
                 .UseShellExecute(definition.UseShellExecute)
                 .CreateNoWindow(definition.CreateNoWindow)
                 .AddSplashTitle(definition.SplashTitles)
-                .AddWindowTitle(definition.WindowTitles.Count == 0 ? [Path.GetFileNameWithoutExtension(definition.ExecutablePath)] : definition.WindowTitles)
+                .AddWindowTitle(
+                    definition.WindowTitles.Count == 0
+                        ? [Path.GetFileNameWithoutExtension(definition.ExecutablePath)]
+                        : definition.WindowTitles
+                )
                 .WithWindowStyle(definition.WindowStyle);
         }
     }

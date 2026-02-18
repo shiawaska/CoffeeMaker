@@ -64,6 +64,7 @@ public class Configuration(ILogger logger) : IConfigurationService
     public void BuildApplicationDefinitions(List<ApplicationDefinitionDto> definitions)
     {
         logger.LogDebug("Building application definitions from configuration", [Area.Config]);
+        LogAppsWithoutCategory(definitions);
 
         try
         {
@@ -77,7 +78,7 @@ public class Configuration(ILogger logger) : IConfigurationService
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to build application definitions from configuration. Exiting.");
+            logger.LogError("Failed to build application definitions from configuration. Exiting.",false);
             logger.LogError(ex, "Failed to build application definitions from configuration.");
             Environment.Exit(1);
         }
@@ -131,5 +132,31 @@ public class Configuration(ILogger logger) : IConfigurationService
         logger.LogDebug("Loading monitor configuration", [Area.Config]);
         ConfigurationsDefaults.Monitors = monitors;
         logger.PrintMonitors("Monitors Loaded from config file ", ConfigurationsDefaults.Monitors);
+    }
+    private void LogAppsWithoutCategory(List<ApplicationDefinitionDto> definitions)
+    {
+        var apps = definitions.Where(a => string.IsNullOrEmpty(a.Category)).ToList();
+        logger.LogDebug("Applications without category:", [Area.Config],true);
+        foreach (var app in apps)
+        {
+            logger.LogDebug($" - {app.Name}", [Area.Config],true);
+            logger.LogDebug($"   Category: {app.Category}", [Area.Config],true);
+            logger.LogDebug($"   Executable: {app.ExecutablePath}", [Area.Config],true);
+            logger.LogDebug($"   Arguments: {app.Arguments}", [Area.Config],true);
+            logger.LogDebug($"   Working Dir: {app.WorkingDirectory}", [Area.Config],true);
+            logger.LogDebug($"   Order: {app.Order}", [Area.Config],true);
+            logger.LogDebug($"   Process Name: {app.ProcessName}", [Area.Config],true);
+            logger.LogDebug($"   Is Active: {app.IsActive}", [Area.Config],true);
+            logger.LogDebug($"   Skip Running Check: {app.SkipRunningCheck}", [Area.Config],true);
+            logger.LogDebug($"   Monitor Index: {app.MonitorIndex}", [Area.Config],true);
+            logger.LogDebug($"   Position: {app.Position}", [Area.Config],true);
+            logger.LogDebug($"   Verb: {app.Verb}", [Area.Config],true);
+            logger.LogDebug($"   Use Shell Execute: {app.UseShellExecute}", [Area.Config],true);
+            logger.LogDebug($"   Create No Window: {app.CreateNoWindow}", [Area.Config],true);
+            logger.LogDebug($"   Window Style: {app.WindowStyle}", [Area.Config],true);
+            logger.LogDebug($"   Window Titles: {string.Join(", ", app.WindowTitles)}", [Area.Config],true);
+            logger.LogDebug($"   Splash Titles: {string.Join(", ", app.SplashTitles)}", [Area.Config],true);
+            
+        }
     }
 }
