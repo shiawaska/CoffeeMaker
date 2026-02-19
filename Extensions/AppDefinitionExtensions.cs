@@ -7,7 +7,7 @@ namespace StartupScriptApp.Extensions;
 
 public static class AppDefinitionExtensions
 {
-     /// <summary>
+    /// <summary>
     /// Checks if the app's name is included in the specified argument list (e.g., "start", "skip", "nocheck"). The check is case-insensitive. If the argument key is not present in the dictionary, this returns false.
     /// </summary>
     /// <param name="appName">The name of the app to check for in the argument list.</param>
@@ -15,13 +15,13 @@ public static class AppDefinitionExtensions
     /// <param name="argKey">The key of the argument list to check within the dictionary.</param>
     /// <returns>True if the app name is found in the specified argument list; otherwise false.</returns>
     private static bool IsAppInArgList(this
-        string appName,
+            string appName,
         Dictionary<string, List<string>> argDict,
         string argKey
     )
     {
         return argDict.ContainsKey(argKey)
-            && argDict[argKey].Contains(appName, StringComparer.OrdinalIgnoreCase);
+               && argDict[argKey].Contains(appName, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -37,11 +37,11 @@ public static class AppDefinitionExtensions
         var inGroup = app.IsAppInGroup(argDict);
 
         return !inSkipList
-            && (
-                IsDefaultStartAll(argDict)
-                || inGroup
-                || inStartList
-            );
+               && (
+                   IsDefaultStartAll(argDict)
+                   || inGroup
+                   || inStartList
+               );
     }
 
     /// <summary>
@@ -51,15 +51,15 @@ public static class AppDefinitionExtensions
     /// <param name="argDict">The dictionary of command-line arguments and their values.</param>
     /// <returns>True if the process check should be skipped for the app; otherwise false.</returns>
     public static bool ShouldSkipProcessCheck(
-       this ApplicationDefinition app,
+        this ApplicationDefinition app,
         Dictionary<string, List<string>> argDict
     )
     {
-        return  app.SkipRunningCheck || string.IsNullOrWhiteSpace(app.ProcessName)
-            || (
-                argDict.ContainsKey("nocheck")
-                && (!argDict["nocheck"].Any() || app.Name.IsAppInArgList(argDict, "nocheck"))
-            );
+        return app.SkipRunningCheck || string.IsNullOrWhiteSpace(app.ProcessName)
+                                    || (
+                                        argDict.ContainsKey("nocheck")
+                                        && (!argDict["nocheck"].Any() || app.Name.IsAppInArgList(argDict, "nocheck"))
+                                    );
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public static class AppDefinitionExtensions
     public static bool ShouldRetry(this ApplicationDefinition app, Dictionary<string, List<string>> argDict)
     {
         return !argDict.ContainsKey("noretry")
-            || (!app.Name.IsAppInArgList(argDict, "noretry") && argDict["noretry"].Any());
+               || (!app.Name.IsAppInArgList(argDict, "noretry") && argDict["noretry"].Any());
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public static class AppDefinitionExtensions
     /// <param name="argDict">The dictionary of command-line arguments and their values.</param>
     /// <returns>The resolved window style to apply when starting the app.</returns>
     public static ProcessWindowStyle GetWindowStyle(
-       this ApplicationDefinition app,
+        this ApplicationDefinition app,
         Dictionary<string, List<string>> argDict
     )
     {
@@ -125,14 +125,5 @@ public static class AppDefinitionExtensions
     {
         return !argDict.ContainsKey("group") && !argDict.ContainsKey("start");
     }
-    
-    public static int GetWindowState(this ApplicationDefinition app)
-    {
-        return app.WindowStyle switch
-        {
-            ProcessWindowStyle.Minimized => SnapConstants.SW_SHOWMINIMIZED,
-            ProcessWindowStyle.Maximized => SnapConstants.SW_SHOWMAXIMIZED,
-            _ => SnapConstants.SW_SHOWNORMAL
-        };
-    }
+
 }

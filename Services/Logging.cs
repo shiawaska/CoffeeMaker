@@ -148,7 +148,7 @@ public class Logging : ILogger
         );
 
    public void LogError(string input, bool? verboseGate = null) =>
-        Log(new LogOptions { Message = input + " Use --verbose to get more details", Level = [LogLevel.Error] });
+        Log(new LogOptions { Message = verboseGate == false ? input + " Use --verbose to get more details" : input, Level = [LogLevel.Error] });
 
     public void PrintApps(List<ApplicationDefinition> apps, string? headerMessage = null)
     {
@@ -172,7 +172,6 @@ public class Logging : ILogger
             LogDebug($"UseShellExecute: {app.UseShellExecute}", [Area.Application]);
             LogDebug($"CreateNoWindow: {app.CreateNoWindow}", [Area.Application]);
             LogDebug($"WindowStyle: {app.WindowStyle}", [Area.Application]);
-            LogDebug($"WindowTitles: {string.Join(", ", app.WindowTitles)}", [Area.Application]);
             LogDebug($"SplashTitles: {string.Join(", ", app.SplashTitles)}", [Area.Application]);
         }
     }

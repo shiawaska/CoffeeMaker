@@ -3,6 +3,8 @@
 public enum SnapPosition
 {
     FullScreen,
+    Minimized,
+    Maximized,
     TopLeft,
     TopRight,
     BottomLeft,

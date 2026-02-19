@@ -29,11 +29,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         var retries = GetRetries(app);
         var handleValidationTasks = processes
-            .SelectMany(
-                proc => app.WindowTitles,
-                (proc, windowTitle) =>
-                    ValidateWindowTitleAsync(proc, windowTitle, app.SplashTitles, retries)
-            )
+            .Select(proc => ValidateWindowTitleAsync(proc, app.SplashTitles, retries))
             .ToList();
 
         var handles = await Task.WhenAll(handleValidationTasks);
@@ -53,14 +49,9 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         var retries = GetRetries(app);
 
-        var handles = await Task.WhenAll(
-            app.WindowTitles.Select(wt =>
-                    ValidateWindowTitleAsync(proc, wt, app.SplashTitles, retries)
-                )
-                .ToList()
-        );
-
-        if (handles.All(h => h == IntPtr.Zero))
+        var handles = await
+            ValidateWindowTitleAsync(proc, app.SplashTitles, retries);
+        if (handles == IntPtr.Zero)
         {
             logger.LogError(
                 $"No valid window handles found for application: {app.Name}, Attempting Broader search"
@@ -68,28 +59,27 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             return await FindWindowAsync(app);
         }
 
-        return handles.Where(h => h != IntPtr.Zero).Distinct().ToList();
+        return [handles];
     }
 
-    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor, int state)
+    public bool SetWindowPosition(IntPtr hWnd, SnapPosition snapPosition, MonitorInfo monitor)
     {
-        var bounds = CalculateSnapSize(monitor, snapPosition);
+        var (bounds, state) = CalculateSnapSize(monitor, snapPosition);
 
-        var uflag = GetWindowState(hWnd);
-
-        if (uflag != SnapConstants.SW_SHOWNORMAL)
+        if (IsWindowAccessible(hWnd))
         {
             logger.LogDebug($"\n Restoring window for handle: {hWnd}", [Area.Window], true);
             var restored = WindowInterop.ShowWindow(hWnd, SnapConstants.SW_RESTORE);
             if (!restored)
                 logger.LogError();
             else
-                logger.LogDebug($"Window postion set on {hWnd}", [Area.Window], true);
+                logger.LogDebug($"Window position set on {hWnd}", [Area.Window], true);
         }
 
         logger.LogDebug($"\nCalling SetWindowPos for {hWnd}", [Area.Window], true);
         logger.LogDebug(
-            $"With bounds: X: {bounds.X}, Y: {bounds.Y}, Width: {bounds.Width}, Height: {bounds.Height}",[Area.Window],
+            $"With bounds: X: {bounds.X}, Y: {bounds.Y}, Width: {bounds.Width}, Height: {bounds.Height}",
+            [Area.Window],
             true
         );
 
@@ -100,15 +90,15 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             bounds.Y,
             bounds.Width,
             bounds.Height,
-            0
+            SnapConstants.SWP_SHOWWINDOW
         );
- 
+
         if (!result)
             logger.LogError();
         else
             logger.LogDebug($"Window position set on {hWnd}", [Area.Window]);
-        
-        result = WindowInterop.ShowWindow(hWnd, uflag);
+
+        result = WindowInterop.ShowWindow(hWnd, state);
         if (!result)
             logger.LogError();
         else
@@ -117,9 +107,12 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         return result;
     }
 
-    private Rectangle CalculateSnapSize(MonitorInfo monitor, SnapPosition position)
+    private (Rectangle, int) CalculateSnapSize(MonitorInfo monitor, SnapPosition position)
     {
-        logger.LogDebug($"\n\n Calculating snap size for position: {position.ToString()}",[Area.Window]);
+        logger.LogDebug(
+            $"\n\n Calculating snap size for position: {position.ToString()}",
+            [Area.Window]
+        );
 
         var bounds = position switch
         {
@@ -181,15 +174,29 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         };
 
         logger.LogDebug(
-            $"Calculated snap size: X: {bounds.X}, Y: {bounds.Y}, Width: {bounds.Width}, Height: {bounds.Height}",[Area.Window],
+            $"Calculated snap size: X: {bounds.X}, Y: {bounds.Y}, Width: {bounds.Width}, Height: {bounds.Height}",
+            [Area.Window],
             true
         );
-        return bounds;
+
+        logger.LogDebug(
+            $"Calculating window state for position: {position.ToString()}",
+            [Area.Window]
+        );
+
+        int state = position switch
+        {
+            SnapPosition.Minimized => SnapConstants.SW_SHOWMINIMIZED,
+            SnapPosition.Maximized => SnapConstants.SW_SHOWMAXIMIZED,
+            _ => SnapConstants.SW_SHOWNORMAL,
+        };
+        logger.LogDebug($"Calculated window state: {nameof(state.ToString)}", [Area.Window], true);
+
+        return (bounds, state);
     }
 
     private async Task<IntPtr> ValidateWindowTitleAsync(
         Process? proc,
-        string? windowTitle,
         IReadOnlyList<string> splashTitles,
         int? retries = null,
         int? delayMs = null
@@ -198,18 +205,20 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (proc == null || SafeCheckHasExited(proc))
         {
             logger.LogDebug(
-                $"Process: Id: {proc?.Id}, Name: {proc?.ProcessName}, Title: {proc?.MainWindowTitle} has exited during window validation."
-            ,[Area.Window]);
+                $"Process: Id: {proc?.Id}, Name: {proc?.ProcessName}, Title: {proc?.MainWindowTitle} has exited during window validation.",
+                [Area.Window]
+            );
             return IntPtr.Zero;
         }
 
         retries ??= ConfigurationsDefaults.WindowCaptureRetries;
         delayMs ??= ConfigurationsDefaults.WindowCaptureDelayMs;
-        
+
         if (retries <= 0)
         {
             logger.LogDebug(
-                $"Process check retries exhausted for Id: {proc.Id}, Name: {proc.ProcessName}, Title: {proc.MainWindowTitle}",[Area.Window]
+                $"Process check retries exhausted for Id: {proc.Id}, Name: {proc.ProcessName}, Title: {proc.MainWindowTitle}",
+                [Area.Window]
             );
             return IntPtr.Zero;
         }
@@ -217,25 +226,20 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (retries != 3)
             proc.Refresh();
         logger.LogDebug(
-            $"Validating window title for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, Retries left: {retries}",[Area.Window]
+            $"Validating window title for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, Retries left: {retries}",
+            [Area.Window]
         );
 
         if (
             !string.IsNullOrEmpty(proc.MainWindowTitle)
-            &&
-            // Removed this due to window titles being unreliable. Only process with a MainWindowTitle will have a window associated with it. So this will match all windows associated with the process
-
-            /* (
-                string.IsNullOrEmpty(windowTitle)
-             || proc.MainWindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase)
-            )
-            &&*/!splashTitles.Any(st =>
+            && !splashTitles.Any(st =>
                 proc.MainWindowTitle.Contains(st, StringComparison.OrdinalIgnoreCase)
             )
         )
         {
             logger.LogDebug(
-                $"Found window with title: {proc.MainWindowTitle} for process: {proc.ProcessName}",[Area.Window]
+                $"Found window with title: {proc.MainWindowTitle} for process: {proc.ProcessName}",
+                [Area.Window]
             );
             return proc.MainWindowHandle;
         }
@@ -246,49 +250,51 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         )
         {
             logger.LogDebug(
-                $"Still on splash window for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, \n Retrying... ({retries - 1} retries left)",[Area.Window]
+                $"Still on splash window for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, \n Retrying... ({retries - 1} retries left)",
+                [Area.Window]
             );
-            
+
             logger.LogDebug(
-                $"Refreshing process info for: {proc.ProcessName} before retrying window check.",[Area.Window]
+                $"Refreshing process info for: {proc.ProcessName} before retrying window check.",
+                [Area.Window]
             );
-            return await ValidateWindowTitleAsync(proc, windowTitle, splashTitles, retries);
+            return await ValidateWindowTitleAsync(proc, splashTitles, retries);
         }
         logger.LogDebug(
-            $"Window title '{proc.MainWindowTitle}' does not match expected title '{windowTitle}' and is not a splash title for process: {proc.ProcessName}, \n ",[Area.Window]
+            $"Window title unavailable '{proc.MainWindowTitle}' or is not a splash title for process: {proc.ProcessName}, \n ",
+            [Area.Window]
         );
-        return await ValidateWindowTitleAsync(proc, windowTitle, splashTitles, retries - 1);
+        return await ValidateWindowTitleAsync(proc, splashTitles, retries - 1);
     }
 
     private int GetRetries(ApplicationDefinition app) =>
         app.ShouldRetry(arguments.ArgDict) ? ConfigurationsDefaults.WindowCaptureRetries : 0;
 
-    private int GetWindowState(IntPtr hWnd)
+    private bool IsWindowAccessible(IntPtr hWnd)
     {
         if (WindowInterop.IsIconic(hWnd))
         {
             logger.LogDebug($"Window is minimized for handle: {hWnd}", true);
-            return SnapConstants.SW_SHOWMINIMIZED;
+            return false;
         }
 
         if (WindowInterop.IsZoomed(hWnd))
         {
             logger.LogDebug($"Window is maximized for handle: {hWnd}", true);
-            return SnapConstants.SW_SHOWMAXIMIZED;
+            return false;
         }
 
         if (WindowInterop.IsWindowArranged(hWnd))
         {
             logger.LogDebug($"Window is in the background for handle: {hWnd}", true);
-            return SnapConstants.SW_SHOWMINNOACTIVE;
+            return false;
         }
         logger.LogDebug($"Window is in the foreground for handle: {hWnd}", true);
-        return SnapConstants.SW_SHOWNORMAL;
+        return true;
     }
 
     private bool SafeCheckHasExited(Process? proc)
     {
-        
         var hasExited = true;
         if (proc == null)
             return hasExited;
@@ -299,7 +305,10 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         catch (Exception ex)
         {
             // this is usually due to a permissions issue.
-            logger.LogError($"Failed to check if process {proc.ProcessName} has exited. Is there a permission issue?", false);
+            logger.LogError(
+                $"Failed to check if process {proc.ProcessName} has exited. Is there a permission issue?",
+                false
+            );
             logger.LogError(ex, $"Failed to check if process {proc.ProcessName} has exited.");
         }
         return hasExited;

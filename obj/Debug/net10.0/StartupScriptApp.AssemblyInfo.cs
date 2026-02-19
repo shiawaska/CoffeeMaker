@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StartupScriptApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+15b0f0763c0427d879934204d549d6c384d216f8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3ce6242f23fe278325bab3ee873b27ce02cce114")]
 [assembly: System.Reflection.AssemblyProductAttribute("StartupScriptApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StartupScriptApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

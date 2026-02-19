@@ -6,7 +6,7 @@ public class ApplicationDefinitionDto
     public string Category { get; set; } = string.Empty;
     public string ExecutablePath { get; set; } = string.Empty;
     public string? WorkingDirectory { get; set; }
-    public List<ArgumentDefinition> Arguments { get; set; } = new();
+    public List<string> Arguments { get; set; } = new();
     public string? ProcessName { get; set; }
     public int Order { get; set; }
     public bool IsActive { get; set; } = true;

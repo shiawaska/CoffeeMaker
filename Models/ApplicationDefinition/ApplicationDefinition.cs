@@ -20,7 +20,6 @@ public sealed class ApplicationDefinition
     public string? Verb { get; }
     public bool UseShellExecute { get; } = false;
     public bool CreateNoWindow { get; } = false;
-    public IReadOnlyList<string> WindowTitles { get; } = Array.Empty<string>();
     public IReadOnlyList<string> SplashTitles { get; } = Array.Empty<string>();
     public ProcessWindowStyle WindowStyle { get; } = ProcessWindowStyle.Normal;
 
@@ -40,9 +39,6 @@ public sealed class ApplicationDefinition
         Verb = builder._verb;
         UseShellExecute = builder._useShellExecute;
         CreateNoWindow = builder._createNoWindow;
-        WindowStyle = builder._windowStyle;
-
-        WindowTitles = builder._windowTitles.AsReadOnly();
         SplashTitles = builder._splashTitles.AsReadOnly();
     }
 
@@ -178,48 +174,13 @@ public sealed class ApplicationDefinition
             return this;
         }
 
-        public Builder AddWindowTitle(string title)
-        {
-            if (!string.IsNullOrWhiteSpace(title))
-                _windowTitles.Add(title);
-            return this;
-        }
-
-        public Builder AddWindowTitle(List<string> title)
-        {
-            if (!title.All(string.IsNullOrWhiteSpace))
-                _windowTitles.AddRange(title.Where(t => !string.IsNullOrWhiteSpace(t.Trim())));
-            return this;
-        }
-
-        /// <summary>
-        /// Adds an argument to the arguments string.
-        /// </summary>
-        /// <param name="arg"> The argument definition to add to the arguments string. </param>
-        /// <param name="includeNameInWindowTitles"> Whether to include the argument name in the window titles. Used for IDE and text editors </param>
-        /// <returns> The builder instance for method chaining. </returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public Builder AddArgument(ArgumentDefinition? arg)
-        {
-            if (arg == null)
-                return this;
-
-            if (arg.IncludeNameInWindowTitles)
-                AddWindowTitle(arg.Name);
-
-            AddArgumentString(arg.Value);
-            return this;
-        }
-
-        public Builder AddArgument(List<ArgumentDefinition>? args)
+        public Builder AddArguments(List<string> args)
         {
             if (args == null || args.Count == 0)
                 return this;
-
+            
             foreach (var arg in args)
-            {
-                AddArgument(arg);
-            }
+                AddArgumentString(arg);
             return this;
         }
 
@@ -246,9 +207,11 @@ public sealed class ApplicationDefinition
         {
             if (string.IsNullOrWhiteSpace(_executablePath))
                 throw new ArgumentException("Executable path cannot be empty.");
-            
+
             if (_useShellExecute == false && _windowStyle == ProcessWindowStyle.Hidden)
-                throw new ArgumentException("Window style cannot be hidden while use shell execute is false.");
+                throw new ArgumentException(
+                    "Window style cannot be hidden while use shell execute is false."
+                );
 
             return new ApplicationDefinition(this);
         }
@@ -300,12 +263,12 @@ public sealed class ApplicationDefinition
 
             return New()
                 .WithName(
-                    definition.Name ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath)
+                    string.IsNullOrEmpty(definition.Name) ? Path.GetFileNameWithoutExtension(definition.ExecutablePath) : definition.Name
                 )
                 .WithCategory(definition.Category)
                 .WithExecutablePath(definition.ExecutablePath)
                 .WithWorkingDirectory(definition.WorkingDirectory)
-                .AddArgument(definition.Arguments)
+                .AddArguments(definition.Arguments)
                 .WithProcessName(
                     definition.ProcessName
                         ?? Path.GetFileNameWithoutExtension(definition.ExecutablePath)
@@ -319,11 +282,6 @@ public sealed class ApplicationDefinition
                 .UseShellExecute(definition.UseShellExecute)
                 .CreateNoWindow(definition.CreateNoWindow)
                 .AddSplashTitle(definition.SplashTitles)
-                .AddWindowTitle(
-                    definition.WindowTitles.Count == 0
-                        ? [Path.GetFileNameWithoutExtension(definition.ExecutablePath)]
-                        : definition.WindowTitles
-                )
                 .WithWindowStyle(definition.WindowStyle);
         }
     }

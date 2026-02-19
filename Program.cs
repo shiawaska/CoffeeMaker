@@ -70,7 +70,7 @@ public class Program
         var index = monitors.CalculateMonitorIndex(app.MonitorIndex);
         
         windowHandle.ForEach(wh =>
-            windowManager.SetWindowPosition(wh, app.Position, monitors[index], app.GetWindowState())
+            windowManager.SetWindowPosition(wh, app.Position, monitors[index])
         );
     }
 
