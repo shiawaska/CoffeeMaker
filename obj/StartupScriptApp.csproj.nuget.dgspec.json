@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\repos\\Startup\\StartupScriptApp.csproj": {}
+    "D:\\Startup\\StartupScriptApp.csproj": {}
   },
   "projects": {
-    "D:\\repos\\Startup\\StartupScriptApp.csproj": {
+    "D:\\Startup\\StartupScriptApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\repos\\Startup\\StartupScriptApp.csproj",
+        "projectUniqueName": "D:\\Startup\\StartupScriptApp.csproj",
         "projectName": "StartupScriptApp",
-        "projectPath": "D:\\repos\\Startup\\StartupScriptApp.csproj",
-        "packagesPath": "C:\\Users\\carlt\\.nuget\\packages\\",
-        "outputPath": "D:\\repos\\Startup\\obj\\",
+        "projectPath": "D:\\Startup\\StartupScriptApp.csproj",
+        "packagesPath": "C:\\Users\\Shiawaska\\.nuget\\packages\\",
+        "outputPath": "D:\\Startup\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\carlt\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Shiawaska\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -65,7 +65,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

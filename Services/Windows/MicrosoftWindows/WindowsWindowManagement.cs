@@ -102,7 +102,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             bounds.Height,
             0
         );
-
+ 
         if (!result)
             logger.LogError();
         else
@@ -124,58 +124,58 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         var bounds = position switch
         {
             SnapPosition.BottomLeft => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Top + monitor.Bounds.Height / 2,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top + monitor.WorkArea.Height / 2,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.BottomRight => new Rectangle(
-                monitor.Bounds.Right - monitor.Bounds.Width / 2,
-                monitor.Bounds.Top + monitor.Bounds.Height / 2,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Right - monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Top + monitor.WorkArea.Height / 2,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.TopLeft => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.TopRight => new Rectangle(
-                monitor.Bounds.Right - monitor.Bounds.Width / 2,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Right - monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.EntireLeft => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height
             ),
             SnapPosition.EntireRight => new Rectangle(
-                monitor.Bounds.Right - monitor.Bounds.Width / 2,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width / 2,
-                monitor.Bounds.Height
+                monitor.WorkArea.Right - monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width / 2,
+                monitor.WorkArea.Height
             ),
             SnapPosition.EntireTop => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.EntireBottom => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Bottom - monitor.Bounds.Height / 2,
-                monitor.Bounds.Width,
-                monitor.Bounds.Height / 2
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Bottom - monitor.WorkArea.Height / 2,
+                monitor.WorkArea.Width,
+                monitor.WorkArea.Height / 2
             ),
             SnapPosition.FullScreen => new Rectangle(
-                monitor.Bounds.Left,
-                monitor.Bounds.Top,
-                monitor.Bounds.Width,
-                monitor.Bounds.Height
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width,
+                monitor.WorkArea.Height
             ),
             _ => new Rectangle(),
         };
