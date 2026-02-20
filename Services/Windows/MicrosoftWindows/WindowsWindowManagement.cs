@@ -49,8 +49,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         var retries = GetRetries(app);
 
-        var handles = await
-            ValidateWindowTitleAsync(proc, app.SplashTitles, retries);
+        var handles = await ValidateWindowTitleAsync(proc, app.SplashTitles, retries);
         if (handles == IntPtr.Zero)
         {
             logger.LogError(
@@ -171,6 +170,12 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
                 monitor.WorkArea.Height
             ),
             SnapPosition.Maximized => new Rectangle(
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width,
+                monitor.WorkArea.Height
+            ),
+            SnapPosition.Minimized => new Rectangle(
                 monitor.WorkArea.Left,
                 monitor.WorkArea.Top,
                 monitor.WorkArea.Width,

@@ -194,7 +194,7 @@ public sealed class ApplicationDefinition
         public ApplicationDefinition Build()
         {
             if (string.IsNullOrWhiteSpace(_executablePath))
-                throw new ArgumentException("Executable path cannot be empty.");
+                throw new ArgumentException($"Executable path cannot be empty. {_name}");
 
             return new ApplicationDefinition(this);
         }

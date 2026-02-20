@@ -196,13 +196,21 @@ public class Logging : ILogger
 
             LogDebug($"\n    Bounds.Bottom: {monitor.Bounds.Bottom}", [ Area.Monitor, Area.Config]);
             LogDebug($"    Bounds.Top: {monitor.Bounds.Top}", [ Area.Monitor, Area.Config]);
-            LogDebug($"    Bounds.Width: {monitor.Bounds.Width}", [ Area.Monitor, Area.Config]);
-            LogDebug($"    Bounds.Height: {monitor.Bounds.Height}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Left: {monitor.Bounds.Left}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Right: {monitor.Bounds.Right}", [ Area.Monitor, Area.Config]);
+            
+            LogDebug($"\n    Bounds.Width: {monitor.Bounds.Width}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    Bounds.Heigh: {monitor.Bounds.Height}", [ Area.Monitor, Area.Config]);
 
             LogDebug($"\n    WorkArea.Bottom: {monitor.WorkArea.Bottom}", [ Area.Monitor, Area.Config]);
             LogDebug($"    WorkArea.Top: {monitor.WorkArea.Top}", [ Area.Monitor, Area.Config]);
-            LogDebug($"    WorkArea.Width: {monitor.WorkArea.Width}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    WorkArea.Left: {monitor.WorkArea.Left}", [ Area.Monitor, Area.Config]);
+            LogDebug($"    WorkArea.Right: {monitor.WorkArea.Right}", [ Area.Monitor, Area.Config]);
+            
+            LogDebug($"\n    WorkArea.Width: {monitor.WorkArea.Width}", [ Area.Monitor, Area.Config]);
             LogDebug($"    WorkArea.Height: {monitor.WorkArea.Height}", [ Area.Monitor, Area.Config]);
+            
+            LogDebug($"\n Index: {monitor.Index}");
         }
     }
 }

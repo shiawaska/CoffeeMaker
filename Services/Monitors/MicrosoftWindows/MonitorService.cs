@@ -32,7 +32,7 @@ public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMo
                 MonitorInfoCallback,
                 GCHandle.ToIntPtr(gcHandle)
             );
-
+            list = OrderMonitorsLeftToRightTopToBottom(list);
             var index = 0;
             list.ForEach(monitor => monitor.Index = index++);
             logger.PrintMonitors("Monitors loaded from OS ", list);
@@ -43,25 +43,20 @@ public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMo
             gcHandle.Free();
         }
     }
-
-    /// <summary>
-    /// Depricated, Needs more testing but trust the order returned as the left to right, top to buttom list.
-    /// </summary>
-    /// <param name="monitors"></param>
-    /// <returns></returns>
-    private List<MonitorInfo> OrganizeMonitors(List<MonitorInfo> monitors)
+    
+    private static List<MonitorInfo> OrderMonitorsLeftToRightTopToBottom(List<MonitorInfo> monitors)
     {
-        var list = monitors;
-        
-        list.Sort(
-            (a, b) =>
-            {
-                var topCompare = a.Bounds.Top.CompareTo(b.Bounds.Top);
-                return topCompare != 0 ? topCompare : a.Bounds.Left.CompareTo(b.Bounds.Left);
-            }
-        );
-        
-        return list;
+        // Stable, deterministic ordering:
+        //   1) top edge (row)
+        //   2) left edge (column)
+        //   3) primary first if identical coords (rare but can happen in mirrored setups)
+        //   4) larger area first as a final tiebreaker
+        return monitors
+            .OrderBy(m => m.Bounds.Top)
+            .ThenBy(m => m.Bounds.Left)
+            .ThenByDescending(m => m.IsPrimary)
+            .ThenByDescending(m => (m.Bounds.Right - m.Bounds.Left) * (m.Bounds.Bottom - m.Bounds.Top))
+            .ToList();
     }
 
     private bool MonitorInfoCallback(

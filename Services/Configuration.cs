@@ -78,7 +78,7 @@ public class Configuration(ILogger logger) : IConfigurationService
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to build application definitions from configuration. Exiting.",false);
+            logger.LogError("Failed to build application definitions from configuration. Exiting.",true);
             logger.LogError(ex, "Failed to build application definitions from configuration.");
             Environment.Exit(1);
         }
@@ -109,6 +109,10 @@ public class Configuration(ILogger logger) : IConfigurationService
         if (!File.Exists(filePath))
         {
             logger.LogInfo("No config file found. Creating default config file.");
+            logger.LogInfo("Would you like a template config file? (y/n)");
+            var response = Console.ReadLine();
+            if (response?.ToLower() != "n") return;
+            
             await using var resourceStream = Assembly
                 .GetExecutingAssembly()
                 .GetManifestResourceStream("StartupScriptApp.Resources.CoffeeMakerConfig.json");
@@ -159,4 +163,6 @@ public class Configuration(ILogger logger) : IConfigurationService
             
         }
     }
+    
+    
 }

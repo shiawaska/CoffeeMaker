@@ -12,7 +12,7 @@ public static class MonitorExtensions
     /// <returns> returns 0-based index within given list or 0 if index is unavailable </returns>
     public static int CalculateMonitorIndex(this List<MonitorInfo> monitors, int index)
     {
-        index =- 1;
+        index--;
         if (index >= monitors.Count || index <= 0)
             return 0;
         return monitors[index].Index;

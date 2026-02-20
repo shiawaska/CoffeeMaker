@@ -113,7 +113,7 @@
       // OPTIONAL: start ordering (lower starts earlier)
       "Order": 1,
 
-      // OPTIONAL: 1-based index in *your config’s* monitor list (your sample uses 1..N style)
+      // OPTIONAL: 1-based index monitor list from left to right(your sample uses 1..N style)
       "MonitorIndex": 2,
 
       // OPTIONAL: must match SnapPosition enum:

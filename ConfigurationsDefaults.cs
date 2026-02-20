@@ -11,7 +11,7 @@ public static class ConfigurationsDefaults
 
     public static int WindowCaptureRetries { get; set; } = 3;
 
-    public static int DelayBeforeSnapMs { get; set; } = 10000;
+    public static int DelayBeforeSnapMs { get; set; } = 8000;
     public static List<ApplicationDefinition> Applications { get; set; } = new();
     public static List<MonitorInfo> Monitors { get; set; } = new();
 }
