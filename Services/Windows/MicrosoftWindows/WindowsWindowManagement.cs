@@ -66,7 +66,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
     {
         var (bounds, state) = CalculateSnapSize(monitor, snapPosition);
 
-        if (IsWindowAccessible(hWnd))
+        if (!IsWindowAccessible(hWnd))
         {
             logger.LogDebug($"\n Restoring window for handle: {hWnd}", [Area.Window], true);
             var restored = WindowInterop.ShowWindow(hWnd, SnapConstants.SW_RESTORE);
@@ -170,6 +170,12 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
                 monitor.WorkArea.Width,
                 monitor.WorkArea.Height
             ),
+            SnapPosition.Maximized => new Rectangle(
+                monitor.WorkArea.Left,
+                monitor.WorkArea.Top,
+                monitor.WorkArea.Width,
+                monitor.WorkArea.Height
+            ),
             _ => new Rectangle(),
         };
 
@@ -217,16 +223,16 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (retries <= 0)
         {
             logger.LogDebug(
-                $"Process check retries exhausted for Id: {proc.Id}, Name: {proc.ProcessName}, Title: {proc.MainWindowTitle}",
+                $"Process check retries exhausted for Id: {proc?.Id}, Name: {proc?.ProcessName}, Title: {proc?.MainWindowTitle}",
                 [Area.Window]
             );
             return IntPtr.Zero;
         }
         await Task.Delay(delayMs.Value);
         if (retries != 3)
-            proc.Refresh();
+            proc?.Refresh();
         logger.LogDebug(
-            $"Validating window title for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, Retries left: {retries}",
+            $"Validating window title for process: {proc?.ProcessName}, Title: {proc?.MainWindowTitle}, Retries left: {retries}",
             [Area.Window]
         );
 
@@ -238,10 +244,10 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         )
         {
             logger.LogDebug(
-                $"Found window with title: {proc.MainWindowTitle} for process: {proc.ProcessName}",
+                $"Found window with title: {proc?.MainWindowTitle} for process: {proc?.ProcessName}",
                 [Area.Window]
             );
-            return proc.MainWindowHandle;
+            return proc?.MainWindowHandle ?? IntPtr.Zero;
         }
         if (
             splashTitles.Any(st =>
@@ -250,18 +256,14 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         )
         {
             logger.LogDebug(
-                $"Still on splash window for process: {proc.ProcessName}, Title: {proc.MainWindowTitle}, \n Retrying... ({retries - 1} retries left)",
+                $"Still on splash window for process: {proc?.ProcessName}, Title: {proc?.MainWindowTitle}, \n Retrying... ({retries} retries left)",
                 [Area.Window]
             );
 
-            logger.LogDebug(
-                $"Refreshing process info for: {proc.ProcessName} before retrying window check.",
-                [Area.Window]
-            );
             return await ValidateWindowTitleAsync(proc, splashTitles, retries);
         }
         logger.LogDebug(
-            $"Window title unavailable '{proc.MainWindowTitle}' or is not a splash title for process: {proc.ProcessName}, \n ",
+            $"Window title unavailable '{proc?.MainWindowTitle}' or is not a splash title for process: {proc?.ProcessName}, \n ",
             [Area.Window]
         );
         return await ValidateWindowTitleAsync(proc, splashTitles, retries - 1);
@@ -289,6 +291,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             logger.LogDebug($"Window is in the background for handle: {hWnd}", true);
             return false;
         }
+
         logger.LogDebug($"Window is in the foreground for handle: {hWnd}", true);
         return true;
     }
