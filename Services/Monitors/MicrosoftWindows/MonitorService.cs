@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using StartupScriptApp.Interfaces;
-using StartupScriptApp.Interop.Interfaces;
-using StartupScriptApp.Interop.Windows;
+using StartupScriptApp.Interop.MicrosoftWindows;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.Constants;
 
@@ -9,9 +8,6 @@ namespace StartupScriptApp.Services.Monitors.MicrosoftWindows;
 
 public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMonitorManager
 {
-    // Top left is 0,0
-    // Bottom right is Width, Height
-
     private readonly bool _useDefaultMonitor = arguments.HasFlag("use-default-monitor");
 
     public List<MonitorInfo> GetAllMonitors()
@@ -46,11 +42,6 @@ public class WindowsMonitorManagement(Arguments arguments, ILogger logger) : IMo
     
     private static List<MonitorInfo> OrderMonitorsLeftToRightTopToBottom(List<MonitorInfo> monitors)
     {
-        // Stable, deterministic ordering:
-        //   1) top edge (row)
-        //   2) left edge (column)
-        //   3) primary first if identical coords (rare but can happen in mirrored setups)
-        //   4) larger area first as a final tiebreaker
         return monitors
             .OrderBy(m => m.Bounds.Top)
             .ThenBy(m => m.Bounds.Left)

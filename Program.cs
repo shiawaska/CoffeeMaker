@@ -1,6 +1,5 @@
 ﻿using StartupScriptApp.Extensions;
 using StartupScriptApp.Interfaces;
-using StartupScriptApp.Interop.Interfaces;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
 using StartupScriptApp.Services;
@@ -68,9 +67,13 @@ public class Program
             return;
 
         var index = monitors.CalculateMonitorIndex(app.MonitorIndex);
-        
+
         windowHandle.ForEach(wh =>
-            windowManager.SetWindowPosition(wh, app.Position, monitors[index])
+            windowManager.SetWindowPosition(
+                wh,
+                arguments.ArgDict.GetWindowStyle(app),
+                monitors[index]
+            )
         );
     }
 
@@ -148,18 +151,24 @@ public class Program
     {
         var logger = new Logging();
         var arguments = new Arguments(logger);
+        
         logger.SetArguments(arguments);
         arguments.SetArgs(args);
+        
         IMonitorManager monitorManager = PlatformServicesFactory.CreateMonitorManager(
             arguments,
             logger
         );
+        
         var processManager = new ProcessManagement(logger);
+        
         IWindowManager windowManager = PlatformServicesFactory.CreateWindowManager(
             logger,
             arguments
         );
+        
         var config = new Configuration(logger);
+        
         return (logger, arguments, monitorManager, processManager, windowManager, config);
     }
 }

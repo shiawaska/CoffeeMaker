@@ -1,11 +1,7 @@
 ﻿using System.Runtime.InteropServices;
-using StartupScriptApp.Interfaces;
-using StartupScriptApp.Interop.Interfaces;
 using StartupScriptApp.Models;
-using StartupScriptApp.Models.Constants;
-using StartupScriptApp.Services;
 
-namespace StartupScriptApp.Interop.Windows;
+namespace StartupScriptApp.Interop.MicrosoftWindows;
 
 public static class MonitorInterop
 {

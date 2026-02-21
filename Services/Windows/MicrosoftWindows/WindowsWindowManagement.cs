@@ -3,7 +3,7 @@ using System.Drawing;
 using StartupScriptApp.Enums;
 using StartupScriptApp.Extensions;
 using StartupScriptApp.Interfaces;
-using StartupScriptApp.Interop.Windows;
+using StartupScriptApp.Interop.MicrosoftWindows;
 using StartupScriptApp.Models;
 using StartupScriptApp.Models.ApplicationDefinition;
 using StartupScriptApp.Models.Constants;
@@ -68,7 +68,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         if (!IsWindowAccessible(hWnd))
         {
             logger.LogDebug($"\n Restoring window for handle: {hWnd}", [Area.Window], true);
-            var restored = WindowInterop.ShowWindow(hWnd, SnapConstants.SW_RESTORE);
+            var restored = WindowInterop.ShowWindow(hWnd, NcmdContants.SW_RESTORE);
             if (!restored)
                 logger.LogError();
             else
@@ -84,7 +84,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         var result = WindowInterop.SetWindowPos(
             hWnd,
-            SnapConstants.HWND_TOP,
+            ZOrderConstants.HWND_TOP,
             bounds.X,
             bounds.Y,
             bounds.Width,
@@ -197,9 +197,9 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
 
         int state = position switch
         {
-            SnapPosition.Minimized => SnapConstants.SW_SHOWMINIMIZED,
-            SnapPosition.Maximized => SnapConstants.SW_SHOWMAXIMIZED,
-            _ => SnapConstants.SW_SHOWNORMAL,
+            SnapPosition.Minimized => NcmdContants.SW_SHOWMINIMIZED,
+            SnapPosition.Maximized => NcmdContants.SW_SHOWMAXIMIZED,
+            _ => NcmdContants.SW_SHOWNORMAL,
         };
         logger.LogDebug($"Calculated window state: {nameof(state.ToString)}", [Area.Window], true);
 
@@ -275,7 +275,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
     }
 
     private int GetRetries(ApplicationDefinition app) =>
-        app.ShouldRetry(arguments.ArgDict) ? ConfigurationsDefaults.WindowCaptureRetries : 0;
+        arguments.ArgDict.ShouldRetry(app) ? ConfigurationsDefaults.WindowCaptureRetries : 0;
 
     private bool IsWindowAccessible(IntPtr hWnd)
     {

@@ -16,7 +16,5 @@ public class ApplicationDefinitionDto
     public string? Verb { get; set; }
     public bool UseShellExecute { get; set; } = true;
     public bool CreateNoWindow { get; set; }
-    public string WindowStyle { get; set; } = "Normal";
-    public List<string> WindowTitles { get; set; } = new();
     public List<string> SplashTitles { get; set; } = new();
 }

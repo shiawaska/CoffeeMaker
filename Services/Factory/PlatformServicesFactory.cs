@@ -1,5 +1,4 @@
 ﻿using StartupScriptApp.Interfaces;
-using StartupScriptApp.Interop.Interfaces;
 using StartupScriptApp.Services.Monitors.MicrosoftWindows;
 using StartupScriptApp.Services.Windows.MicrosoftWindows;
 

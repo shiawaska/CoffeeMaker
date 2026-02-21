@@ -157,8 +157,6 @@ public class Configuration(ILogger logger) : IConfigurationService
             logger.LogDebug($"   Verb: {app.Verb}", [Area.Config],true);
             logger.LogDebug($"   Use Shell Execute: {app.UseShellExecute}", [Area.Config],true);
             logger.LogDebug($"   Create No Window: {app.CreateNoWindow}", [Area.Config],true);
-            logger.LogDebug($"   Window Style: {app.WindowStyle}", [Area.Config],true);
-            logger.LogDebug($"   Window Titles: {string.Join(", ", app.WindowTitles)}", [Area.Config],true);
             logger.LogDebug($"   Splash Titles: {string.Join(", ", app.SplashTitles)}", [Area.Config],true);
             
         }

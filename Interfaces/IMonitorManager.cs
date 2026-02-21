@@ -1,6 +1,6 @@
 ﻿using StartupScriptApp.Models;
 
-namespace StartupScriptApp.Interop.Interfaces;
+namespace StartupScriptApp.Interfaces;
 
 public interface IMonitorManager
 {

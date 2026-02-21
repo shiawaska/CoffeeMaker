@@ -7,7 +7,6 @@ namespace StartupScriptApp.Interfaces;
 
 public interface ILogger
 {
-    public void SetArguments(Arguments arguments);
     public void LogDebug(string input, bool? verboseGate = null);
     public void LogDebug(string input, Area[] areas, bool? verboseGate = null);
     public void LogInfo(string input, bool? verboseGate = null);

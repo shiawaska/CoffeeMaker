@@ -68,8 +68,8 @@ public class ProcessManagement(ILogger logger)
     )
     {
         logger.LogDebug($"\n\n Checking startup checklist for app: {app.Name}", [Area.Process]);
-        bool shouldStart = app.ShouldProcessApp(argDict);;
-        bool runningCheck = app.ShouldSkipProcessCheck(argDict);
+        bool shouldStart = argDict.ShouldProcessApp(app);;
+        bool runningCheck = argDict.ShouldSkipProcessCheck(app);
         bool isRunning = false;
 
         logger.LogDebug(

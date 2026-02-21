@@ -1,8 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace StartupScriptApp.Interop.Windows;
+namespace StartupScriptApp.Interop.MicrosoftWindows;
 
-public class WindowInterop
+public static class WindowInterop
 {
     /// <summary>
     /// Retrieves the window handle used by the console associated with the calling process. If the calling process is not associated with a console, the return value is NULL. To get extended error information, call GetLastError.
