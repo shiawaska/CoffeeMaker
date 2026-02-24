@@ -111,7 +111,7 @@ public class Configuration(ILogger logger) : IConfigurationService
             logger.LogInfo("No config file found. Creating default config file.");
             logger.LogInfo("Would you like a template config file? (y/n)");
             var response = Console.ReadLine();
-            if (response?.ToLower() != "n") return;
+            if (response?.ToLower() != "y") return;
             
             await using var resourceStream = Assembly
                 .GetExecutingAssembly()
