@@ -113,6 +113,8 @@ public class Configuration(ILogger logger) : IConfigurationService
             var response = Console.ReadLine();
             if (response?.ToLower() != "y") return;
             
+            logger.LogInfo("Creating default config file...");
+            
             await using var resourceStream = Assembly
                 .GetExecutingAssembly()
                 .GetManifestResourceStream("StartupScriptApp.Resources.CoffeeMakerConfig.json");
@@ -127,6 +129,7 @@ public class Configuration(ILogger logger) : IConfigurationService
 
             await resourceStream.CopyToAsync(fileStream);
             logger.LogInfo("Created default config file at path : " + filePath);
+            logger.LogInfo("Please edit the file and restart the application.");
             Environment.Exit(0);
         }
     }
