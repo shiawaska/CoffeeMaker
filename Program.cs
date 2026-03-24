@@ -25,6 +25,8 @@ public class Program
         var apps = ConfigurationsDefaults.Applications;
 
         await StartApps(apps, monitors, windowManager, processManager, arguments);
+        
+        Environment.Exit(0);
     }
 
     private static string BuildConfigFilePath(Arguments arguments, ILogger logger)

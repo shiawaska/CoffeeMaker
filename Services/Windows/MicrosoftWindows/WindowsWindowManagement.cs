@@ -210,7 +210,8 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         Process? proc,
         IReadOnlyList<string> splashTitles,
         int? retries = null,
-        int? delayMs = null
+        int? delayMs = null,
+        Stopwatch? stopwatch = null
     )
     {
         if (proc == null || SafeCheckHasExited(proc))
@@ -235,7 +236,7 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
         }
         await Task.Delay(delayMs.Value);
         if (retries != 3)
-            proc?.Refresh();
+            proc.Refresh();
         logger.LogDebug(
             $"Validating window title for process: {proc?.ProcessName}, Title: {proc?.MainWindowTitle}, Retries left: {retries}",
             [Area.Window]
@@ -260,12 +261,23 @@ public class WindowsWindowManagement(ILogger logger, Arguments arguments) : IWin
             )
         )
         {
+            if (stopwatch == null)
+            {
+                stopwatch = new Stopwatch();
+                stopwatch.Start();
+            }
+            var trigger = stopwatch.ElapsedMilliseconds > 90000;
+            if (trigger)
+            {
+                stopwatch.Restart();
+                return await ValidateWindowTitleAsync(proc, splashTitles, retries - 1);
+            }
             logger.LogDebug(
                 $"Still on splash window for process: {proc?.ProcessName}, Title: {proc?.MainWindowTitle}, \n Retrying... ({retries} retries left)",
                 [Area.Window]
             );
 
-            return await ValidateWindowTitleAsync(proc, splashTitles, retries);
+            return await ValidateWindowTitleAsync(proc, splashTitles, retries, delayMs, stopwatch);
         }
         logger.LogDebug(
             $"Window title unavailable '{proc?.MainWindowTitle}' or is not a splash title for process: {proc?.ProcessName}, \n ",
